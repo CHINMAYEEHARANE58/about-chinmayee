@@ -1,114 +1,31 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#9a9f85" />
-    <meta name="description" content="Chinmayee — a playful, visual personal portfolio." />
-    <title>About Chinmayee — Portfolio</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet" />
-    <link rel="preload" href="./assets/chinmayee-character.png" as="image" />
-    <link rel="stylesheet" href="./styles.css" />
-    <script src="./script.js" defer></script>
-  </head>
-  <body>
-    <a class="skip-link" href="#about">Skip to content</a>
-
-    <div class="stage" aria-hidden="true">
-      <div class="stage-glow"></div>
-      <div class="character-wrap" id="characterWrap">
-        <img class="character" src="./assets/chinmayee-character.png" alt="" />
-      </div>
-      <div class="stage-vignette"></div>
-    </div>
-    <div class="grain" aria-hidden="true"></div>
-
-    <div class="frame-chrome" id="frameChrome" aria-hidden="true">
-      <div class="frame-line"></div>
-      <span class="corner top-left">+</span><span class="corner top-right">+</span>
-      <span class="corner bottom-left">+</span><span class="corner bottom-right">+</span>
-      <div class="frame-label label-top-left"><strong>Chinmayee</strong><span>PERSONAL PORTFOLIO</span></div>
-      <div class="frame-label label-top-right">PORTFOLIO — 2026</div>
-      <div class="frame-label label-bottom-left">CREATE · EXPLORE · PLAY</div>
-      <div class="frame-label label-right">A LITTLE WORLD OF MY OWN</div>
-    </div>
-
-    <header class="site-header">
-      <a class="wordmark" href="#about" aria-label="Chinmayee, back to top">CH<span>✳</span></a>
-      <nav aria-label="Main navigation">
-        <a href="#about">About</a>
-        <a href="#resume">Résumé</a>
-        <a href="#work">Works</a>
-        <a href="#contact">Contact</a>
-      </nav>
-      <button class="sound-toggle" id="motionToggle" type="button" aria-pressed="true" aria-label="Pause character motion"><span class="motion-dot"></span> MOTION ON</button>
-    </header>
-
-    <main>
-      <section class="hero" id="about" aria-labelledby="hero-title">
-        <div class="hero-content">
-          <p class="eyebrow hero-eyebrow">HELLO, I'M CHINMAYEE <span class="tiny-star">✳</span></p>
-          <h1 id="hero-title">About <em>Chinmayee</em></h1>
-          <p class="hero-description">Welcome to my little corner of the internet. I’m collecting the things I make, the ideas I explore, and the stories behind them.</p>
-          <a class="scroll-prompt" href="#resume"><span>SCROLL TO EXPLORE</span><i></i></a>
-        </div>
-      </section>
-
-      <section class="resume section-dark" id="resume" aria-labelledby="resume-title">
-        <div class="section-heading">
-          <span class="section-kicker">A BIT OF BACKSTORY</span>
-          <h2 id="resume-title">Résumé<span class="hand-star">✳</span></h2>
-          <p>The timeline is ready for your education, roles, and milestones.</p>
-        </div>
-        <div class="timeline">
-          <article class="timeline-item">
-            <span class="timeline-year">01 / START</span>
-            <div><h3>Education</h3><p>Add your school, degree, and the year you graduated.</p></div>
-          </article>
-          <article class="timeline-item">
-            <span class="timeline-year">02 / GROW</span>
-            <div><h3>Experience</h3><p>Add the roles, teams, and work you would like to share.</p></div>
-          </article>
-          <article class="timeline-item">
-            <span class="timeline-year">03 / NOW</span>
-            <div><h3>What I’m doing now</h3><p>Add your current focus and what you are excited to build next.</p></div>
-          </article>
-        </div>
-        <div class="section-aside">YOUR STORY GOES HERE <span>↗</span></div>
-      </section>
-
-      <section class="work section-dark" id="work" aria-labelledby="work-title">
-        <div class="work-intro">
-          <span class="section-kicker">THE FUN PART</span>
-          <h2 id="work-title">Selected <em>work.</em></h2>
-          <p>A home for the projects, experiments, and ideas you want people to remember.</p>
-        </div>
-        <div class="work-grid">
-          <article class="work-card card-one">
-            <div class="card-art"><span class="art-orbit orbit-one"></span><span class="art-orbit orbit-two"></span><span class="art-core">✳</span></div>
-            <div class="card-copy"><span>01 / FEATURED PROJECT</span><h3>Your first project</h3><p>Project details and a real link can go here.</p></div>
-          </article>
-          <article class="work-card card-two">
-            <div class="card-art"><span class="art-window"></span><span class="art-spark">✦</span><span class="art-spark small">✳</span></div>
-            <div class="card-copy"><span>02 / CREATIVE EXPERIMENT</span><h3>Your second project</h3><p>Show the process, result, and your role.</p></div>
-          </article>
-          <article class="work-card card-three">
-            <div class="card-art"><span class="art-ribbon">MAKE<br />SOMETHING<br />GOOD</span></div>
-            <div class="card-copy"><span>03 / SIDE PROJECT</span><h3>Your third project</h3><p>Give this one a title and a short story.</p></div>
-          </article>
-        </div>
-        <p class="work-note">Project cards are ready to be replaced with your real portfolio.</p>
-      </section>
-
-      <section class="contact section-dark" id="contact" aria-labelledby="contact-title">
-        <span class="section-kicker">ONE LAST THING</span>
-        <h2 id="contact-title">Let's make<br /><em>something.</em></h2>
-        <p>Have an idea or just want to say hello? Add your contact email and social links here.</p>
-        <div class="contact-sticker" aria-hidden="true">HELLO! <span>✳</span></div>
-        <div class="contact-bottom"><span>© 2026 CHINMAYEE</span><a href="#about">BACK TO TOP ↑</a></div>
-      </section>
-    </main>
-  </body>
-</html>
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#a3aa91"><meta name="description" content="Chinmayee Harane — software engineer building across full stack, data, and security.">
+  <title>About Chinmayee — Software Engineer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="preload" href="./assets/chinmayee-front.png" as="image"><link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./script.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#about">Skip to content</a>
+<div class="scene-stage" id="sceneStage" aria-hidden="true"><div class="scene-light"></div><div class="character-camera" id="characterCamera"><img class="character-frame front" src="./assets/chinmayee-front.png" alt=""><img class="character-frame side" src="./assets/chinmayee-side.png" alt=""><img class="character-frame back" src="./assets/chinmayee-back.png" alt=""></div><div class="scene-shade"></div></div>
+<div class="resume-rail" id="resumeRail" aria-hidden="true"></div><div class="film-grain" aria-hidden="true"></div>
+<div class="hero-chrome" id="heroChrome" aria-hidden="true"><div class="frame-outline"></div><span class="cross cross-tl">+</span><span class="cross cross-tr">+</span><span class="cross cross-bl">+</span><span class="cross cross-br">+</span><div class="chrome-meta chrome-tl"><strong>Chinmayee Harane</strong><span>SOFTWARE ENGINEER</span></div><div class="chrome-meta chrome-tr">PORTFOLIO — 2026</div><div class="chrome-meta chrome-bl">CODE · DESIGN · CURIOSITY</div><div class="chrome-meta chrome-right">BASED IN PUNE, INDIA</div></div>
+<header class="site-controls"><a class="github-control" href="https://github.com/CHINMAYEEHARANE58" target="_blank" rel="noopener noreferrer" aria-label="Chinmayee on GitHub" title="GitHub">GH</a><a class="resume-control" href="./resume/Chinmayee_Harane_Resume.pdf" target="_blank" rel="noopener noreferrer">RÉSUMÉ</a><button class="motion-control" id="motionToggle" type="button" aria-pressed="true">MOTION ON</button></header>
+<main>
+  <section class="hero" id="about" aria-labelledby="heroTitle"><div class="hero-copy"><h1 id="heroTitle">About Chinmayee</h1><p>I’m Chinmayee — a software engineering student exploring where thoughtful products, data, and security meet. I like making useful things, learning new systems, and turning complicated ideas into experiences people can use.</p><a class="scroll-cue" href="#resume"><span>SCROLL</span><i></i></a></div></section>
+  <section class="resume-section" id="resume" aria-labelledby="resumeTitle"><h2 class="resume-title" id="resumeTitle">Résumé</h2><div class="resume-timeline">
+    <article class="resume-entry" data-focus="education"><span class="time-label">2023 – 2027</span><h3>MIT ADT University · Pune</h3><p class="role">B.Tech in Computer Science · Kalvium Software Product Engineering</p><p>Building a foundation in software engineering, problem solving, and product development.</p></article>
+    <article class="resume-entry" data-focus="icliniq"><span class="time-label">MAR 2025 – JAN 2026</span><h3>iCliniq</h3><p class="role">Tech Intern · Healthcare platform</p><p>Contributed frontend and backend features to a live product. Worked with React, TypeScript, Node.js, GraphQL, Directus, and REST APIs; debugged production issues and improved user-facing flows.</p></article>
+    <article class="resume-entry" data-focus="nykaa"><span class="time-label">AUG 2026 – NOW</span><h3>Nykaa</h3><p class="role">Cyber Security Intern</p><p>Learning across data loss prevention, governance and compliance, application security, security operations, and cloud security.</p></article>
+    <article class="resume-entry" data-focus="building"><span class="time-label">ALWAYS BUILDING</span><h3>Projects & experiments</h3><p class="role">Full stack · Data · Security · Mobile</p><p>From event ticketing and collaborative workspaces to document search and mobile scheduling, I enjoy learning by making.</p></article>
+  </div></section>
+  <section class="works-section" id="work" aria-labelledby="worksTitle"><div class="works-sticky"><h2 id="worksTitle" class="works-title">Works</h2><div class="works-track" id="worksTrack"></div><div class="works-progress"><div class="works-progress-line"><span id="worksProgress"></span></div><span>KEEP SCROLLING</span></div></div></section>
+  <section class="skills-section" id="skills" aria-labelledby="skillsTitle"><div class="section-overline">A FEW THINGS IN MY TOOLBOX</div><h2 id="skillsTitle">Skills & <em>curiosities.</em></h2><div class="skills-grid"><article><span>01</span><h3>Build</h3><p>React · Angular · TypeScript · Node.js · Express · FastAPI · Rust / Axum · GraphQL</p></article><article><span>02</span><h3>Data</h3><p>PostgreSQL · MongoDB · Firebase · Snowflake · Kafka · Airflow · PySpark</p></article><article><span>03</span><h3>Secure</h3><p>DLP · GRC · OWASP Top 10 · Burp Suite · Kali Linux · Cloud security fundamentals</p></article><article><span>04</span><h3>Explore</h3><p>Flutter · UI/UX · Docker · AWS · C++ · Python · Java · systems thinking</p></article></div><div class="highlights"><p><strong>Twice shortlisted</strong> for the Smart India Hackathon.</p><p>Former technical team member, Microsoft Learn Student Club. Trek leader, MIT Adventure Club.</p></div></section>
+  <section class="contact-section" id="contact" aria-labelledby="contactTitle"><span class="section-overline">SAY HELLO</span><h2 id="contactTitle">Let’s make<br><em>something good.</em></h2><p>I’m always curious about interesting products, thoughtful teams, and new challenges.</p><a class="email-link" href="mailto:chinmayeeharane20@gmail.com">chinmayeeharane20@gmail.com</a><nav class="social-links" aria-label="Social links"><a href="https://github.com/CHINMAYEEHARANE58" target="_blank" rel="noopener noreferrer">GitHub</a><a href="https://www.linkedin.com/in/chinmayee-harane-568896287/" target="_blank" rel="noopener noreferrer">LinkedIn</a><a href="https://leetcode.com/u/chinmayeeharane/" target="_blank" rel="noopener noreferrer">LeetCode</a><a href="./resume/Chinmayee_Harane_Resume.pdf" target="_blank" rel="noopener noreferrer">Résumé</a></nav><div class="contact-foot"><span>© 2026 CHINMAYEE HARANE</span><a href="#about">BACK TO TOP ↑</a></div></section>
+</main>
+<dialog class="project-dialog" id="projectDialog" aria-labelledby="dialogTitle"><button class="dialog-close" id="dialogClose" type="button" aria-label="Close project details">×</button><div id="dialogContent"></div></dialog>
+</body></html>
