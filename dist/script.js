@@ -79,34 +79,6 @@ dialog.addEventListener('close', () => document.body.classList.remove('dialog-op
 
 const stage = $('#sceneStage');
 const camera = $('#characterCamera');
-const eyeLayouts = {
-  front: [[507, 218, 22, 11], [585, 224, 21, 10]],
-  side: [[536, 215, 21, 11], [611, 216, 19, 10]],
-  low: [[509, 177, 22, 10], [586, 194, 20, 10]],
-};
-function eyeRig(view, layout) {
-  const eyes = eyeLayouts[layout];
-  return `<svg class="eye-rig" viewBox="0 0 1024 1536" aria-hidden="true" focusable="false">
-    <defs>
-      <radialGradient id="${view}-iris-gradient"><stop offset="0" stop-color="#24150f"/><stop offset=".42" stop-color="#4d2a1b"/><stop offset=".82" stop-color="#85543a"/><stop offset="1" stop-color="#3b241c"/></radialGradient>
-      ${eyes.map(([x,y,rx,ry], i) => `<clipPath id="${view}-eye-${i}"><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/></clipPath>`).join('')}
-    </defs>
-    ${eyes.map(([x,y], i) => `<g clip-path="url(#${view}-eye-${i})"><g class="iris" data-mirrored="${view.endsWith('mirror')}"><circle cx="${x}" cy="${y}" r="12.2" fill="url(#${view}-iris-gradient)"/><circle cx="${x}" cy="${y}" r="5.4" fill="#211714"/><circle cx="${x-4.3}" cy="${y-4.4}" r="2.6" fill="#fff6e9" opacity=".93"/><circle cx="${x+4}" cy="${y+3.5}" r="1" fill="#e9cfb7" opacity=".68"/></g></g>`).join('')}
-  </svg>`;
-}
-const viewData = [
-  ['front', 'chinmayee-front-gaze.png', 'front'],
-  ['side', 'chinmayee-side-gaze.png', 'side'],
-  ['rear', 'chinmayee-rear-quarter.png'],
-  ['back', 'chinmayee-back.png'],
-  ['rear-mirror', 'chinmayee-rear-quarter.png'],
-  ['side-mirror', 'chinmayee-side-gaze.png', 'side'],
-  ['low', 'chinmayee-low-gaze.png', 'low'],
-];
-camera.innerHTML = `<div class="character-rig" id="characterRig">${viewData.map(([name, asset, eyes]) => `<div class="character-view ${name.endsWith('mirror') ? 'mirrored' : ''}" data-view="${name}"><img src="./assets/${asset}" alt="" draggable="false">${eyes ? eyeRig(name, eyes) : ''}</div>`).join('')}</div>`;
-const characterRig = $('#characterRig');
-const views = Object.fromEntries([...camera.querySelectorAll('[data-view]')].map((view) => [view.dataset.view, view]));
-const irises = [...camera.querySelectorAll('.iris')];
 const rail = $('#resumeRail');
 const chrome = $('#heroChrome');
 const track = $('#worksTrack');
@@ -114,38 +86,22 @@ const progressLine = $('#worksProgress');
 const heroCopy = $('.hero-copy');
 const works = $('#work');
 const entries = [...document.querySelectorAll('.resume-entry')];
-for (const entry of entries) {
-  const card = document.createElement('div');
-  card.className = 'resume-card';
-  while (entry.firstChild) card.appendChild(entry.firstChild);
-  entry.appendChild(card);
-}
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let motionOn = !reducedMotion.matches;
 let pointerX = 0;
 let pointerY = 0;
-let gazeX = 0;
-let gazeY = 0;
 let scheduled = false;
 
 function keyframes(viewportHeight) {
   const top = (element) => element.getBoundingClientRect().top + window.scrollY;
-  const first = top(entries[0]) - viewportHeight * .34;
-  const second = top(entries[1]) - viewportHeight * .34;
-  const third = top(entries[2]) - viewportHeight * .34;
-  const fourth = top(entries[3]) - viewportHeight * .34;
-  const work = top(works) - viewportHeight * .2;
-  const frame = (at, zoom, ax, ay, tx, ty, angle = 0, low = 0) => ({ at, zoom, ax, ay, tx, ty, angle, low });
   const scene = [
-    frame(0, 1, .5, .18, .5, .3),
-    frame(top($('#resume')) - viewportHeight * .05, 1.55, .51, .2, .4, .44),
-    frame(first, 2.55, .43, .22, .28, .5), // University: left cheek and hair.
-    frame(second, 3.55, .49, .22, .25, .53), // Internship: closer to the cheek stickers.
-    frame(third, 3.65, .61, .16, .27, .5), // Security: across to the eyes.
-    frame(fourth, 3.15, .55, .22, .29, .52, 0, 1), // Projects: low angle at the jaw.
-    frame(mix(fourth, work, .35), 1.35, .5, .2, .48, .38), // Pull back to the front.
-    frame(mix(fourth, work, .72), 1.4, .5, .2, .28, .4, 95), // Turn past the shoulder.
-    frame(work, 1.48, .5, .2, .2, .42, 180), // Back of head before the gallery.
+    { at: 0, zoom: 1, ax: .5, ay: .18, tx: .5, ty: .3 },
+    { at: top($('#resume')) - viewportHeight * .05, zoom: 1.3, ax: .5, ay: .18, tx: .43, ty: .42 },
+    { at: top(entries[0]) - viewportHeight * .34, zoom: 2.3, ax: .56, ay: .15, tx: .28, ty: .5 },
+    { at: top(entries[1]) - viewportHeight * .34, zoom: 3.05, ax: .43, ay: .17, tx: .25, ty: .5 },
+    { at: top(entries[2]) - viewportHeight * .34, zoom: 3.4, ax: .55, ay: .15, tx: .27, ty: .51 },
+    { at: top(entries[3]) - viewportHeight * .34, zoom: 2.45, ax: .5, ay: .2, tx: .27, ty: .46 },
+    { at: top(works) - viewportHeight * .25, zoom: 1.25, ax: .5, ay: .17, tx: .18, ty: .44 },
   ];
   return scene.sort((a, b) => a.at - b.at);
 }
@@ -157,39 +113,10 @@ function interpolateCamera(scroll, frames) {
     if (scroll <= b.at) {
       const t = clamp((scroll - a.at) / Math.max(1, b.at - a.at));
       const smooth = t * t * (3 - 2 * t);
-      return Object.fromEntries(['zoom', 'ax', 'ay', 'tx', 'ty', 'angle', 'low'].map((key) => [key, mix(a[key], b[key], smooth)]));
+      return Object.fromEntries(['zoom', 'ax', 'ay', 'tx', 'ty'].map((key) => [key, mix(a[key], b[key], smooth)]));
     }
   }
   return frames.at(-1);
-}
-
-function paintCharacter(angle, low) {
-  const stops = [[0, 'front'], [60, 'side'], [120, 'rear'], [180, 'back'], [240, 'rear-mirror'], [300, 'side-mirror'], [360, 'front']];
-  const alpha = Object.fromEntries(Object.keys(views).map((name) => [name, 0]));
-  const a = clamp(angle, 0, 360);
-  for (let i = 0; i < stops.length - 1; i++) {
-    if (a <= stops[i + 1][0]) {
-      const t = clamp((a - stops[i][0]) / (stops[i + 1][0] - stops[i][0]));
-      const blend = clamp((t - .45) / .1);
-      const eased = blend * blend * (3 - 2 * blend);
-      alpha[stops[i][1]] += 1 - eased;
-      alpha[stops[i + 1][1]] += eased;
-      break;
-    }
-  }
-  const lowBlend = clamp((low - .82) / .05);
-  alpha.front *= 1 - lowBlend;
-  alpha.low = lowBlend;
-  for (const [name, element] of Object.entries(views)) element.style.opacity = String(alpha[name]);
-}
-
-function paintEyes() {
-  const targetX = motionOn ? pointerX * 14 : 0;
-  const targetY = motionOn ? pointerY * 10 : 0;
-  gazeX = mix(gazeX, targetX, .2);
-  gazeY = mix(gazeY, targetY, .2);
-  for (const iris of irises) iris.setAttribute('transform', `translate(${(iris.dataset.mirrored === 'true' ? -gazeX : gazeX).toFixed(2)} ${gazeY.toFixed(2)})`);
-  if (Math.abs(gazeX - targetX) + Math.abs(gazeY - targetY) > .03) schedulePaint();
 }
 
 function paint() {
@@ -204,14 +131,10 @@ function paint() {
   const baseWidth = baseHeight * 2 / 3;
   camera.style.width = `${baseWidth}px`;
   camera.style.height = `${baseHeight}px`;
-  const zoom = vw < 600 ? frame.zoom * (frame.zoom > 2 ? .85 : 1) : frame.zoom;
-  const tx = vw * (vw < 600 ? .5 : frame.tx) - frame.ax * baseWidth * zoom + (motionOn ? pointerX * 8 : 0);
+  const zoom = vw < 600 ? Math.min(frame.zoom, 1.7) : frame.zoom;
+  const tx = vw * (vw < 600 ? (scroll < workTop ? .5 : .22) : frame.tx) - frame.ax * baseWidth * zoom + (motionOn ? pointerX * 12 : 0);
   const ty = vh * frame.ty - frame.ay * baseHeight * zoom + (motionOn ? pointerY * 8 : 0);
   camera.style.transform = `translate3d(${tx}px,${ty}px,0) scale(${zoom})`;
-  characterRig.style.transform = `perspective(1500px) rotateX(${(-frame.low * 5).toFixed(2)}deg)`;
-  const angle = scroll >= workTop ? 180 + workProgress * 180 : frame.angle;
-  paintCharacter(angle, frame.low);
-  paintEyes();
 
   const heroFade = clamp(scroll / (vh * .45));
   heroCopy.style.opacity = String(1 - heroFade);
@@ -220,6 +143,16 @@ function paint() {
   rail.style.opacity = String(clamp((scroll - vh * .55) / (vh * .45)) * (1 - clamp((scroll - workTop) / (vh * .5))));
   track.style.transform = `translate3d(${-workProgress * (groups.length - 1) * (vw * (vw < 600 ? 1 : vw < 900 ? .74 : .66))}px,0,0)`;
   progressLine.style.width = `${Math.max(1, workProgress * 100)}%`;
+  const inWork = scroll >= workTop;
+  let front = 1, side = 0, back = 0;
+  if (inWork) {
+    side = clamp(workProgress * 6) * (1 - clamp((workProgress - .17) * 6));
+    back = clamp((workProgress - .14) * 7) * (1 - clamp((workProgress - .56) * 5));
+    front = Math.max(0, 1 - side - back);
+  }
+  $('.character-frame.front').style.opacity = String(front);
+  $('.character-frame.side').style.opacity = String(side);
+  $('.character-frame.back').style.opacity = String(back);
   const pastWork = clamp((scroll - (workTop + workHeight - vh)) / (vh * .7));
   stage.style.opacity = String(1 - pastWork);
 }
@@ -228,8 +161,6 @@ function schedulePaint() { if (!scheduled) { scheduled = true; requestAnimationF
 window.addEventListener('scroll', schedulePaint, { passive: true });
 window.addEventListener('resize', schedulePaint);
 window.addEventListener('pointermove', (event) => { pointerX = event.clientX / window.innerWidth - .5; pointerY = event.clientY / window.innerHeight - .5; if (motionOn) schedulePaint(); }, { passive: true });
-document.addEventListener('pointerleave', () => { pointerX = 0; pointerY = 0; schedulePaint(); });
-window.addEventListener('pointercancel', () => { pointerX = 0; pointerY = 0; schedulePaint(); });
 function setMotion(value) { motionOn = value; document.body.classList.toggle('motion-off', !value); $('#motionToggle').textContent = `MOTION ${value ? 'ON' : 'OFF'}`; $('#motionToggle').setAttribute('aria-pressed', String(value)); schedulePaint(); }
 $('#motionToggle').addEventListener('click', () => setMotion(!motionOn));
 reducedMotion.addEventListener('change', (event) => setMotion(!event.matches));
