@@ -100,6 +100,12 @@ dialog.addEventListener('close', () => document.body.classList.remove('dialog-op
 
 const stage = $('#sceneStage');
 const camera = $('#characterCamera');
+const frontFrame = camera.querySelector('.character-frame.front');
+const sideFrame = camera.querySelector('.character-frame.side');
+const backFrame = camera.querySelector('.character-frame.back');
+const sceneLight = camera.parentElement.querySelector('.scene-light');
+const GAZE = { maxX: 3.6, maxY: 1.6, fastMs: 65, steadyMs: 110, xRange: .29, yRange: .35 };
+const CAMERA = { settleMs: 115, catchUpMs: 55, mobileCloseZoom: 2.05, desktopCloseZoom: 3.35 };
 const eyeLayers = {
   front: {
     original: './assets/chinmayee-front.png', blank: './assets/chinmayee-front-gaze.png',
@@ -116,13 +122,14 @@ const eyeLayers = {
     ],
   },
 };
+const gazeEyes = [];
 for (const [view, layer] of Object.entries(eyeLayers)) {
   const rig = camera.querySelector(`[data-eye-view="${view}"]`);
   const defs = layer.eyes.map((eye) => `<clipPath id="${view}-${eye.name}-eye"><path d="${eye.window}"/></clipPath><clipPath id="${view}-${eye.name}-iris"><ellipse cx="${eye.x}" cy="${eye.y}" rx="${eye.rx}" ry="${eye.ry}"/></clipPath>`).join('');
-  const eyes = layer.eyes.map((eye) => `<g clip-path="url(#${view}-${eye.name}-eye)"><image href="${layer.blank}" width="1024" height="1536" clip-path="url(#${view}-${eye.name}-iris)"/><g class="iris-mover"><image href="${layer.original}" width="1024" height="1536" clip-path="url(#${view}-${eye.name}-iris)"/></g></g>`).join('');
+  const eyes = layer.eyes.map((eye) => `<g clip-path="url(#${view}-${eye.name}-eye)"><image href="${layer.blank}" width="1024" height="1536"/><g class="iris-mover" data-eye="${eye.name}"><image href="${layer.original}" width="1024" height="1536" clip-path="url(#${view}-${eye.name}-iris)"/></g></g>`).join('');
   rig.innerHTML = `<defs>${defs}</defs>${eyes}`;
+  for (const eye of layer.eyes) gazeEyes.push({ node: rig.querySelector(`[data-eye="${eye.name}"]`), x: eye.x, y: eye.y, gazeX: 0, gazeY: 0 });
 }
-const eyeMovers = [...camera.querySelectorAll('.iris-mover')];
 const rail = $('#resumeRail');
 const chrome = $('#heroChrome');
 const track = $('#worksTrack');
@@ -132,43 +139,64 @@ const works = $('#work');
 const entries = [...document.querySelectorAll('.resume-entry')];
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let motionOn = !reducedMotion.matches;
-let pointerX = 0;
-let pointerY = 0;
 let cursorX = 0;
 let cursorY = 0;
 let hasPointer = false;
-let gazeX = 0;
-let gazeY = 0;
-let lastGazeTime = 0;
 let cameraScroll = window.scrollY;
-let lastCameraTime = 0;
+let lastFrameTime = performance.now();
 let scheduled = false;
+let shots = [];
+let workTop = 0;
+let workHeight = 0;
 
-function paintGaze(faceX, faceY, vw, vh) {
-  const targetX = motionOn && hasPointer ? Math.tanh((cursorX - faceX) / (vw * .31)) * 4 : 0;
-  const targetY = motionOn && hasPointer ? Math.tanh((cursorY - faceY) / (vh * .36)) * 1.8 : 0;
-  const now = performance.now();
-  const alpha = motionOn ? 1 - Math.exp(-Math.min(now - lastGazeTime || 16, 64) / 75) : 1;
-  lastGazeTime = now;
-  gazeX = mix(gazeX, targetX, alpha);
-  gazeY = mix(gazeY, targetY, alpha);
-  const offset = `translate(${gazeX.toFixed(2)} ${gazeY.toFixed(2)})`;
-  for (const eye of eyeMovers) eye.setAttribute('transform', offset);
-  if (Math.abs(gazeX - targetX) + Math.abs(gazeY - targetY) > .025) schedulePaint();
+function paintGaze(tx, ty, width, height, zoom, vw, vh, dt) {
+  let settling = false;
+  for (const eye of gazeEyes) {
+    const screenX = tx + width * zoom * eye.x / 1024;
+    const screenY = ty + height * zoom * eye.y / 1536;
+    const targetX = motionOn && hasPointer ? Math.tanh((cursorX - screenX) / (vw * GAZE.xRange)) * GAZE.maxX : 0;
+    const targetY = motionOn && hasPointer ? Math.tanh((cursorY - screenY) / (vh * GAZE.yRange)) * GAZE.maxY : 0;
+    const distance = Math.hypot(targetX - eye.gazeX, targetY - eye.gazeY);
+    const duration = mix(GAZE.steadyMs, GAZE.fastMs, clamp(distance / 2));
+    const alpha = motionOn ? 1 - Math.exp(-dt / duration) : 1;
+    eye.gazeX = mix(eye.gazeX, targetX, alpha);
+    eye.gazeY = mix(eye.gazeY, targetY, alpha);
+    eye.node.setAttribute('transform', `translate(${eye.gazeX.toFixed(2)} ${eye.gazeY.toFixed(2)})`);
+    settling ||= Math.abs(eye.gazeX - targetX) + Math.abs(eye.gazeY - targetY) > .02;
+  }
+  if (settling) schedulePaint();
 }
 
 function keyframes(viewportHeight) {
   const top = (element) => element.getBoundingClientRect().top + window.scrollY;
+  const resumeTop = top($('#resume'));
+  const educationTop = top(entries[0]);
+  const nextTop = top(entries[1]);
+  const nykaaTop = top(entries[2]);
+  const buildingTop = top(entries[3]);
+  const workTop = top(works);
+  const shot = (at, zoom, ax, ay, tx, ty, side = 0, focus = 0) => ({ at, zoom, ax, ay, tx, ty, side, focus });
   const scene = [
-    { at: 0, zoom: 1, ax: .5, ay: .18, tx: .5, ty: .3 },
-    { at: top($('#resume')) - viewportHeight * .05, zoom: 1.3, ax: .5, ay: .18, tx: .43, ty: .42 },
-    { at: top(entries[0]) - viewportHeight * .34, zoom: 2.3, ax: .56, ay: .15, tx: .28, ty: .5 },
-    { at: top(entries[1]) - viewportHeight * .34, zoom: 3.05, ax: .43, ay: .17, tx: .25, ty: .5 },
-    { at: top(entries[2]) - viewportHeight * .34, zoom: 3.4, ax: .55, ay: .15, tx: .27, ty: .51 },
-    { at: top(entries[3]) - viewportHeight * .34, zoom: 2.45, ax: .5, ay: .2, tx: .27, ty: .46 },
-    { at: top(works) - viewportHeight * .25, zoom: 1.25, ax: .5, ay: .17, tx: .18, ty: .44 },
+    shot(0, 1, .5, .18, .5, .3),
+    shot(resumeTop - viewportHeight * .35, 1.16, .5, .17, .43, .39),
+    shot(educationTop - viewportHeight * .30, 1.42, .52, .16, .36, .42),
+    shot(educationTop - viewportHeight * .12, 1.65, .56, .15, .31, .43, 1),
+    shot(educationTop + entries[0].offsetHeight * .46 - viewportHeight * .20, 1.65, .56, .15, .31, .43, 1),
+    shot(nextTop - viewportHeight * .28, CAMERA.desktopCloseZoom, .56, .14, .27, .43, 1, 1),
+    shot(nextTop - viewportHeight * .10, CAMERA.desktopCloseZoom, .56, .14, .27, .43, 1, 1),
+    shot(nextTop + viewportHeight * .22, 2.3, .54, .16, .28, .46, 0),
+    shot(nykaaTop - viewportHeight * .22, 2.6, .52, .16, .27, .47),
+    shot(buildingTop - viewportHeight * .30, 2.35, .5, .2, .27, .46),
+    shot(workTop - viewportHeight * .25, 1.25, .5, .17, .18, .44),
   ];
   return scene.sort((a, b) => a.at - b.at);
+}
+
+function measureScene() {
+  workHeight = (groups.length + 1) * window.innerHeight;
+  works.style.height = `${workHeight}px`;
+  workTop = works.getBoundingClientRect().top + window.scrollY;
+  shots = keyframes(window.innerHeight);
 }
 
 function interpolateCamera(scroll, frames) {
@@ -177,7 +205,8 @@ function interpolateCamera(scroll, frames) {
     const a = frames[i], b = frames[i + 1];
     if (scroll <= b.at) {
       const t = clamp((scroll - a.at) / Math.max(1, b.at - a.at));
-      return Object.fromEntries(['zoom', 'ax', 'ay', 'tx', 'ty'].map((key) => [key, mix(a[key], b[key], t)]));
+      const eased = t * t * (3 - 2 * t);
+      return Object.fromEntries(['zoom', 'ax', 'ay', 'tx', 'ty', 'side', 'focus'].map((key) => [key, mix(a[key], b[key], eased)]));
     }
   }
   return frames.at(-1);
@@ -187,54 +216,60 @@ function paint() {
   scheduled = false;
   const vh = window.innerHeight, vw = window.innerWidth, scroll = window.scrollY;
   const now = performance.now();
-  const cameraAlpha = motionOn ? 1 - Math.exp(-Math.min(now - lastCameraTime || 16, 64) / 105) : 1;
-  lastCameraTime = now;
+  const dt = Math.min(Math.max(now - lastFrameTime, 1), 80);
+  lastFrameTime = now;
+  const lag = Math.abs(scroll - cameraScroll) / vh;
+  const duration = mix(CAMERA.settleMs, CAMERA.catchUpMs, clamp((lag - .12) / .8));
+  const cameraAlpha = motionOn ? 1 - Math.exp(-dt / duration) : 1;
   cameraScroll = mix(cameraScroll, scroll, cameraAlpha);
-  if (Math.abs(cameraScroll - scroll) > .4) schedulePaint();
-  const workTop = works.getBoundingClientRect().top + scroll;
-  const workHeight = (groups.length + 1) * vh;
-  works.style.height = `${workHeight}px`;
+  if (Math.abs(cameraScroll - scroll) > .25) schedulePaint();
   const workProgress = clamp((scroll - workTop - vh) / Math.max(1, (groups.length - 1) * vh));
-  const frame = interpolateCamera(cameraScroll, keyframes(vh));
+  const frame = motionOn ? interpolateCamera(cameraScroll, shots) : shots[0];
   const baseHeight = vh * (vw < 600 ? 1.4 : 1.82);
   const baseWidth = baseHeight * 2 / 3;
   camera.style.width = `${baseWidth}px`;
   camera.style.height = `${baseHeight}px`;
-  const zoom = vw < 600 ? Math.min(frame.zoom, 1.7) : frame.zoom;
-  const tx = vw * (vw < 600 ? (scroll < workTop ? .5 : .22) : frame.tx) - frame.ax * baseWidth * zoom + (motionOn ? pointerX * 12 : 0);
-  const ty = vh * frame.ty - frame.ay * baseHeight * zoom + (motionOn ? pointerY * 8 : 0);
+  const zoom = vw < 600 ? Math.min(frame.zoom, CAMERA.mobileCloseZoom) : frame.zoom;
+  const targetX = vw < 600 ? (scroll < workTop ? .5 : .22) : frame.tx;
+  const tx = vw * targetX - frame.ax * baseWidth * zoom;
+  const targetY = vw < 600 ? mix(frame.ty, .20, frame.side) : frame.ty;
+  const ty = vh * targetY - frame.ay * baseHeight * zoom;
   camera.style.transform = `translate3d(${tx}px,${ty}px,0) scale(${zoom})`;
-  paintGaze(tx + baseWidth * zoom * (546 / 1024), ty + baseHeight * zoom * (222 / 1536), vw, vh);
+  paintGaze(tx, ty, baseWidth, baseHeight, zoom, vw, vh, dt);
+  sceneLight.style.opacity = String(1 - frame.focus * .13);
 
   const heroFade = clamp(scroll / (vh * .45));
   heroCopy.style.opacity = String(1 - heroFade);
   heroCopy.style.filter = `blur(${heroFade * 12}px)`;
   chrome.style.opacity = String(1 - clamp(scroll / 270));
-  rail.style.opacity = String(clamp((scroll - vh * .55) / (vh * .45)) * (1 - clamp((scroll - workTop) / (vh * .5))));
+  rail.style.opacity = String(clamp((cameraScroll - vh * .55) / (vh * .45)) * (1 - clamp((cameraScroll - workTop) / (vh * .5))));
   track.style.transform = `translate3d(${-workProgress * (groups.length - 1) * (vw * (vw < 600 ? 1 : vw < 900 ? .74 : .66))}px,0,0)`;
   progressLine.style.width = `${Math.max(1, workProgress * 100)}%`;
   const inWork = scroll >= workTop;
-  let front = 1, side = 0, back = 0;
-  if (inWork) {
+  let front = 1 - frame.side, side = frame.side, back = 0;
+  if (inWork && motionOn) {
     side = clamp(workProgress * 6) * (1 - clamp((workProgress - .17) * 6));
     back = clamp((workProgress - .14) * 7) * (1 - clamp((workProgress - .56) * 5));
     front = Math.max(0, 1 - side - back);
   }
-  $('.character-frame.front').style.opacity = String(front);
-  $('.character-frame.side').style.opacity = String(side);
-  $('.character-frame.back').style.opacity = String(back);
+  frontFrame.style.opacity = String(front);
+  sideFrame.style.opacity = String(side);
+  backFrame.style.opacity = String(back);
   const pastWork = clamp((scroll - (workTop + workHeight - vh)) / (vh * .7));
   stage.style.opacity = String(1 - pastWork);
 }
 
 function schedulePaint() { if (!scheduled) { scheduled = true; requestAnimationFrame(paint); } }
 window.addEventListener('scroll', schedulePaint, { passive: true });
-window.addEventListener('resize', schedulePaint);
-window.addEventListener('pointermove', (event) => { cursorX = event.clientX; cursorY = event.clientY; hasPointer = true; pointerX = event.clientX / window.innerWidth - .5; pointerY = event.clientY / window.innerHeight - .5; if (motionOn) schedulePaint(); }, { passive: true });
+window.addEventListener('resize', () => { measureScene(); schedulePaint(); });
+window.addEventListener('pointermove', (event) => { if (event.pointerType !== 'mouse') { hasPointer = false; schedulePaint(); return; } cursorX = event.clientX; cursorY = event.clientY; hasPointer = true; if (motionOn) schedulePaint(); }, { passive: true });
+document.addEventListener('pointerout', (event) => { if (event.pointerType === 'mouse' && !event.relatedTarget) { hasPointer = false; schedulePaint(); } }, { passive: true });
 window.addEventListener('blur', () => { hasPointer = false; schedulePaint(); });
 function setMotion(value) { motionOn = value; document.body.classList.toggle('motion-off', !value); $('#motionToggle').textContent = `MOTION ${value ? 'ON' : 'OFF'}`; $('#motionToggle').setAttribute('aria-pressed', String(value)); schedulePaint(); }
 $('#motionToggle').addEventListener('click', () => setMotion(!motionOn));
 reducedMotion.addEventListener('change', (event) => setMotion(!event.matches));
 renderWorks();
 renderContributions();
+measureScene();
+document.fonts?.ready.then(() => { measureScene(); schedulePaint(); });
 setMotion(motionOn);
