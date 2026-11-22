@@ -6,6 +6,24 @@ export const moreWebProjects = [
     github: "https://github.com/CHINMAYEEHARANE58/AI-chatbot",
   },
   {
+    title: "Magicpin Vera Bot",
+    summary: "A local merchant-support bot prototype with a stateful Python HTTP API and a browser dashboard for testing conversations and business flows.",
+    category: ["Backend", "Prototype"], stack: ["Python", "HTTP API", "JavaScript"], note: "Local prototype",
+    github: "https://github.com/CHINMAYEEHARANE58/Magicpin-AI-bot",
+  },
+  {
+    title: "CloudNotes Release Lab",
+    summary: "A hands-on cloud release debugging lab covering Terraform modules, remote state, containers, and a microservice rollout. The repository contains intentionally planted faults to investigate locally.",
+    category: ["Cloud", "Learning lab"], stack: ["Terraform", "Docker", "Microservices"], note: "Learning lab",
+    github: "https://github.com/CHINMAYEEHARANE58/cloudnotes-release-lab",
+  },
+  {
+    title: "CloudNotes Infra Lab",
+    summary: "A Terraform learning lab for reviewing GCP network, IAM, and storage configurations, with deliberate security and infrastructure issues to find and fix.",
+    category: ["Cloud", "Security", "Learning lab"], stack: ["Terraform", "GCP", "IAM"], note: "Learning lab",
+    github: "https://github.com/CHINMAYEEHARANE58/cloudnotes-infra-lab",
+  },
+  {
     title: "Skillora",
     summary: "An AI career-copilot scaffold pairing a React dashboard with Spring Boot services and a resume-analysis pipeline that needs external infrastructure.",
     category: ["Full Stack", "AI / ML", "Backend"], stack: ["React", "TypeScript", "Spring Boot", "MySQL"], note: "In development",

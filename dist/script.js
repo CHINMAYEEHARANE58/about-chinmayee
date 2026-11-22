@@ -1,5 +1,6 @@
 import { projects, earlierProjects } from './data/projects.js';
-import { moreWebProjects } from './data/more-projects.js';
+import { moreWebProjects } from './data/more-projects.js?v=20261123';
+import { githubContributions } from './data/contributions.js';
 
 const $ = (selector) => document.querySelector(selector);
 const clamp = (n, min = 0, max = 1) => Math.min(max, Math.max(min, n));
@@ -11,14 +12,18 @@ const moreByTitle = Object.fromEntries(moreWebProjects.map((project) => [project
 const art = {
   teamflow: './assets/projects/teamflow.png',
   stockpilot: './assets/projects/stockpilot.jpg',
-  sentinelops: './assets/projects/sentinelops.jpg',
-  gigx: './assets/projects/gigx.png',
+  sentinelops: './assets/projects/sentinelops-home.jpg',
+  gigx: './assets/projects/gigx-home.jpg',
+  splitstream: './assets/projects/splitstream.jpg',
+  finsight: './assets/projects/finsight.jpg',
+  'Happy Teeth': './assets/projects/happy-teeth.jpg',
 };
 
 const groups = [
   { title: 'Platforms', subtitle: 'Full-stack ideas made tangible', items: ['teamflow', 'grabapass', 'gigx', 'splitstream'] },
   { title: 'AI & ideas', subtitle: 'Experiments with useful intelligence', items: ['closetai', 'documind', 'internagent', 'Skillora', 'Vera merchant bot'] },
   { title: 'Systems', subtitle: 'Data, security, and reliable workflows', items: ['stockpilot', 'sentinelops', 'careconnect', 'ClubChain'] },
+  { title: 'Cloud & bots', subtitle: 'Recent prototypes and learning labs', items: ['Magicpin Vera Bot', 'CloudNotes Release Lab', 'CloudNotes Infra Lab'] },
   { title: 'Interfaces', subtitle: 'Web and mobile experiences', items: ['finsight', 'smart-library-manager', 'Happy Teeth', 'Plate Poetry React', 'Student progress dashboard'] },
   { title: 'More work', subtitle: 'Curiosity in many directions', items: ['Library Management System', 'Game collection', 'Instagram clone', 'React Quiz'] },
   { title: 'Earlier builds', subtitle: 'Small projects and first experiments', items: earlierProjects.map((project) => project.title) },
@@ -31,8 +36,23 @@ const allItems = Object.fromEntries([
 ]);
 
 function previewContent(project) {
-  const image = art[project.slug];
-  return image ? `<img src="${esc(image)}" alt="Preview of ${esc(project.title)}">` : `<span>${esc(project.title)}</span>`;
+  const image = art[project.slug] || art[project.title];
+  if (image) return `<img src="${esc(image)}" alt="Front page preview of ${esc(project.title)}">`;
+  return `<div class="project-cover"><span>SELECTED PROJECT</span><strong>${esc(project.title)}</strong><small>${esc(project.category?.[0] || 'Portfolio project')}</small></div>`;
+}
+
+function renderContributions() {
+  const { start, end, total, levels } = githubContributions;
+  const firstDay = new Date(`${start}T12:00:00Z`);
+  const cells = [...levels].map((level, index) => {
+    const date = new Date(firstDay);
+    date.setUTCDate(firstDay.getUTCDate() + index);
+    const day = date.toISOString().slice(0, 10);
+    return `<span class="contribution-day level-${level}" title="${day}: GitHub activity level ${level} of 4"></span>`;
+  }).join('');
+  $('#contributionCount').textContent = String(total);
+  $('#contributionPeriod').textContent = `${start} to ${end}`;
+  $('#contributionGrid').innerHTML = cells;
 }
 
 function renderWorks() {
@@ -41,6 +61,7 @@ function renderWorks() {
     const first = allItems[group.items[0]];
     const rows = group.items.map((key) => {
       const project = allItems[key];
+      if (!project) throw new Error(`Missing project: ${key}`);
       const label = project.status ?? project.note ?? (project.category?.[0] || 'Project');
       return `<li><button type="button" data-project="${esc(key)}" aria-label="View ${esc(project.title)} details"><span>${esc(project.title)}</span><small>${esc(label)}</small></button></li>`;
     }).join('');
@@ -165,4 +186,5 @@ function setMotion(value) { motionOn = value; document.body.classList.toggle('mo
 $('#motionToggle').addEventListener('click', () => setMotion(!motionOn));
 reducedMotion.addEventListener('change', (event) => setMotion(!event.matches));
 renderWorks();
+renderContributions();
 setMotion(motionOn);
