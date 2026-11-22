@@ -105,7 +105,7 @@ const sideFrame = camera.querySelector('.character-frame.side');
 const backFrame = camera.querySelector('.character-frame.back');
 const sceneLight = camera.parentElement.querySelector('.scene-light');
 const CAMERA = { settleMs: 115, catchUpMs: 55, mobileCloseZoom: 2.05, desktopCloseZoom: 3.35 };
-const CAT = { width: 100, height: 92, restMs: 480, followMs: 125, maxSpeed: 1.45 };
+const CAT = { width: 78, height: 72, delayMs: 190, restMs: 420, followMs: 165, maxSpeed: 1.15 };
 const cat = $('#cursorCat');
 const rail = $('#resumeRail');
 const chrome = $('#heroChrome');
@@ -118,7 +118,8 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let motionOn = !reducedMotion.matches;
 let catActive = false;
 let catX = 0, catY = 0, catTargetX = 0, catTargetY = 0;
-let lastPointerX = 0, lastPointerY = 0, lastPointerMove = 0;
+let lastChaseMove = 0;
+const catTrail = [];
 let cameraScroll = window.scrollY;
 let lastFrameTime = performance.now();
 let scheduled = false;
@@ -128,15 +129,23 @@ let workHeight = 0;
 
 function paintCat(dt, now) {
   if (!catActive || !motionOn) return;
+  while (catTrail.length && catTrail[0].time <= now - CAT.delayMs) {
+    const next = catTrail.shift();
+    const direction = next.x - catTargetX;
+    if (Math.abs(direction) > 2) cat.style.setProperty('--cat-direction', direction < 0 ? -1 : 1);
+    if (Math.hypot(next.x - catTargetX, next.y - catTargetY) > 2) lastChaseMove = now;
+    catTargetX = next.x;
+    catTargetY = next.y;
+  }
   const dx = catTargetX - catX, dy = catTargetY - catY;
   const distance = Math.hypot(dx, dy);
   const easedStep = distance * (1 - Math.exp(-dt / CAT.followMs));
   const step = Math.min(distance, easedStep, dt * CAT.maxSpeed);
   if (distance > .01) { catX += dx / distance * step; catY += dy / distance * step; }
   cat.style.transform = `translate3d(${catX.toFixed(1)}px,${catY.toFixed(1)}px,0)`;
-  const running = distance > 2 || now - lastPointerMove < CAT.restMs;
+  const running = distance > 2 || now - lastChaseMove < CAT.restMs;
   cat.classList.toggle('is-running', running);
-  if (running) schedulePaint();
+  if (running || catTrail.length) schedulePaint();
 }
 
 function keyframes(viewportHeight) {
@@ -233,22 +242,23 @@ function paint() {
 
 function schedulePaint() { if (!scheduled) { scheduled = true; requestAnimationFrame(paint); } }
 window.addEventListener('scroll', schedulePaint, { passive: true });
-window.addEventListener('resize', () => { measureScene(); schedulePaint(); });
+window.addEventListener('resize', () => { measureScene(); catActive = false; catTrail.length = 0; cat.classList.remove('is-visible'); schedulePaint(); });
 window.addEventListener('pointermove', (event) => {
-  if (event.pointerType !== 'mouse' || !motionOn) { catActive = false; cat.classList.remove('is-visible'); return; }
-  catTargetX = clamp(event.clientX - CAT.width * .42, 4, window.innerWidth - CAT.width - 4);
-  catTargetY = clamp(event.clientY + 12, 4, window.innerHeight - CAT.height - 4);
-  if (!catActive) { catX = clamp(catTargetX - 58, 4, window.innerWidth - CAT.width - 4); catY = catTargetY; catActive = true; lastPointerMove = performance.now(); }
-  const dx = event.clientX - lastPointerX, dy = event.clientY - lastPointerY;
-  if (Math.hypot(dx, dy) > 2) lastPointerMove = performance.now();
-  if (Math.abs(dx) > 2) cat.style.setProperty('--cat-direction', dx < 0 ? -1 : 1);
-  lastPointerX = event.clientX; lastPointerY = event.clientY;
+  if (event.pointerType !== 'mouse' || !motionOn) { catActive = false; catTrail.length = 0; cat.classList.remove('is-visible'); return; }
+  const x = clamp(event.clientX - CAT.width * .42, 4, window.innerWidth - CAT.width - 4);
+  const y = clamp(event.clientY + 12, 4, window.innerHeight - CAT.height - 4);
+  if (!catActive) { catX = clamp(x - 42, 4, window.innerWidth - CAT.width - 4); catY = y; catTargetX = catX; catTargetY = catY; catActive = true; lastChaseMove = 0; }
+  const now = performance.now();
+  const last = catTrail.at(-1);
+  if (last && now - last.time < 12) { last.x = x; last.y = y; }
+  else catTrail.push({ x, y, time: now });
+  if (catTrail.length > 80) catTrail.shift();
   cat.classList.add('is-visible');
   schedulePaint();
 }, { passive: true });
-document.addEventListener('pointerout', (event) => { if (event.pointerType === 'mouse' && !event.relatedTarget) { catActive = false; cat.classList.remove('is-visible'); } }, { passive: true });
-window.addEventListener('blur', () => { catActive = false; cat.classList.remove('is-visible'); });
-function setMotion(value) { motionOn = value; document.body.classList.toggle('motion-off', !value); $('#motionToggle').textContent = `MOTION ${value ? 'ON' : 'OFF'}`; $('#motionToggle').setAttribute('aria-pressed', String(value)); if (!value) { catActive = false; cat.classList.remove('is-visible'); } schedulePaint(); }
+document.addEventListener('pointerout', (event) => { if (event.pointerType === 'mouse' && !event.relatedTarget) { catActive = false; catTrail.length = 0; cat.classList.remove('is-visible'); } }, { passive: true });
+window.addEventListener('blur', () => { catActive = false; catTrail.length = 0; cat.classList.remove('is-visible'); });
+function setMotion(value) { motionOn = value; document.body.classList.toggle('motion-off', !value); $('#motionToggle').textContent = `MOTION ${value ? 'ON' : 'OFF'}`; $('#motionToggle').setAttribute('aria-pressed', String(value)); if (!value) { catActive = false; catTrail.length = 0; cat.classList.remove('is-visible'); } schedulePaint(); }
 $('#motionToggle').addEventListener('click', () => setMotion(!motionOn));
 reducedMotion.addEventListener('change', (event) => setMotion(!event.matches));
 renderWorks();
