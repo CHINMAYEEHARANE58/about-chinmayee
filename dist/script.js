@@ -104,32 +104,9 @@ const frontFrame = camera.querySelector('.character-frame.front');
 const sideFrame = camera.querySelector('.character-frame.side');
 const backFrame = camera.querySelector('.character-frame.back');
 const sceneLight = camera.parentElement.querySelector('.scene-light');
-const GAZE = { maxX: 3.6, maxY: 1.6, fastMs: 65, steadyMs: 110, xRange: .29, yRange: .35 };
 const CAMERA = { settleMs: 115, catchUpMs: 55, mobileCloseZoom: 2.05, desktopCloseZoom: 3.35 };
-const eyeLayers = {
-  front: {
-    original: './assets/chinmayee-front.png', blank: './assets/chinmayee-front-gaze.png',
-    eyes: [
-      { name: 'left', x: 505, y: 219, rx: 12, ry: 11, window: 'M486 217 C497 211 514 211 528 221 C517 228 498 229 486 217 Z' },
-      { name: 'right', x: 585, y: 226, rx: 11, ry: 10, window: 'M570 225 C580 218 596 218 607 228 C597 235 579 235 570 225 Z' },
-    ],
-  },
-  side: {
-    original: './assets/chinmayee-side.png', blank: './assets/chinmayee-side-gaze.png',
-    eyes: [
-      { name: 'left', x: 536, y: 216, rx: 12, ry: 11, window: 'M516 216 C525 209 545 208 559 219 C547 227 527 227 516 216 Z' },
-      { name: 'right', x: 611, y: 216, rx: 11, ry: 10, window: 'M592 216 C600 209 617 208 629 217 C618 224 601 224 592 216 Z' },
-    ],
-  },
-};
-const gazeEyes = [];
-for (const [view, layer] of Object.entries(eyeLayers)) {
-  const rig = camera.querySelector(`[data-eye-view="${view}"]`);
-  const defs = layer.eyes.map((eye) => `<clipPath id="${view}-${eye.name}-eye"><path d="${eye.window}"/></clipPath><clipPath id="${view}-${eye.name}-iris"><ellipse cx="${eye.x}" cy="${eye.y}" rx="${eye.rx}" ry="${eye.ry}"/></clipPath>`).join('');
-  const eyes = layer.eyes.map((eye) => `<g clip-path="url(#${view}-${eye.name}-eye)"><image href="${layer.blank}" width="1024" height="1536"/><g class="iris-mover" data-eye="${eye.name}"><image href="${layer.original}" width="1024" height="1536" clip-path="url(#${view}-${eye.name}-iris)"/></g></g>`).join('');
-  rig.innerHTML = `<defs>${defs}</defs>${eyes}`;
-  for (const eye of layer.eyes) gazeEyes.push({ node: rig.querySelector(`[data-eye="${eye.name}"]`), x: eye.x, y: eye.y, gazeX: 0, gazeY: 0 });
-}
+const CAT = { width: 100, height: 92, restMs: 480, followMs: 125, maxSpeed: 1.45 };
+const cat = $('#cursorCat');
 const rail = $('#resumeRail');
 const chrome = $('#heroChrome');
 const track = $('#worksTrack');
@@ -139,9 +116,9 @@ const works = $('#work');
 const entries = [...document.querySelectorAll('.resume-entry')];
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let motionOn = !reducedMotion.matches;
-let cursorX = 0;
-let cursorY = 0;
-let hasPointer = false;
+let catActive = false;
+let catX = 0, catY = 0, catTargetX = 0, catTargetY = 0;
+let lastPointerX = 0, lastPointerY = 0, lastPointerMove = 0;
 let cameraScroll = window.scrollY;
 let lastFrameTime = performance.now();
 let scheduled = false;
@@ -149,22 +126,17 @@ let shots = [];
 let workTop = 0;
 let workHeight = 0;
 
-function paintGaze(tx, ty, width, height, zoom, vw, vh, dt) {
-  let settling = false;
-  for (const eye of gazeEyes) {
-    const screenX = tx + width * zoom * eye.x / 1024;
-    const screenY = ty + height * zoom * eye.y / 1536;
-    const targetX = motionOn && hasPointer ? Math.tanh((cursorX - screenX) / (vw * GAZE.xRange)) * GAZE.maxX : 0;
-    const targetY = motionOn && hasPointer ? Math.tanh((cursorY - screenY) / (vh * GAZE.yRange)) * GAZE.maxY : 0;
-    const distance = Math.hypot(targetX - eye.gazeX, targetY - eye.gazeY);
-    const duration = mix(GAZE.steadyMs, GAZE.fastMs, clamp(distance / 2));
-    const alpha = motionOn ? 1 - Math.exp(-dt / duration) : 1;
-    eye.gazeX = mix(eye.gazeX, targetX, alpha);
-    eye.gazeY = mix(eye.gazeY, targetY, alpha);
-    eye.node.setAttribute('transform', `translate(${eye.gazeX.toFixed(2)} ${eye.gazeY.toFixed(2)})`);
-    settling ||= Math.abs(eye.gazeX - targetX) + Math.abs(eye.gazeY - targetY) > .02;
-  }
-  if (settling) schedulePaint();
+function paintCat(dt, now) {
+  if (!catActive || !motionOn) return;
+  const dx = catTargetX - catX, dy = catTargetY - catY;
+  const distance = Math.hypot(dx, dy);
+  const easedStep = distance * (1 - Math.exp(-dt / CAT.followMs));
+  const step = Math.min(distance, easedStep, dt * CAT.maxSpeed);
+  if (distance > .01) { catX += dx / distance * step; catY += dy / distance * step; }
+  cat.style.transform = `translate3d(${catX.toFixed(1)}px,${catY.toFixed(1)}px,0)`;
+  const running = distance > 2 || now - lastPointerMove < CAT.restMs;
+  cat.classList.toggle('is-running', running);
+  if (running) schedulePaint();
 }
 
 function keyframes(viewportHeight) {
@@ -235,7 +207,7 @@ function paint() {
   const targetY = vw < 600 ? mix(frame.ty, .20, frame.side) : frame.ty;
   const ty = vh * targetY - frame.ay * baseHeight * zoom;
   camera.style.transform = `translate3d(${tx}px,${ty}px,0) scale(${zoom})`;
-  paintGaze(tx, ty, baseWidth, baseHeight, zoom, vw, vh, dt);
+  paintCat(dt, now);
   sceneLight.style.opacity = String(1 - frame.focus * .13);
 
   const heroFade = clamp(scroll / (vh * .45));
@@ -262,10 +234,21 @@ function paint() {
 function schedulePaint() { if (!scheduled) { scheduled = true; requestAnimationFrame(paint); } }
 window.addEventListener('scroll', schedulePaint, { passive: true });
 window.addEventListener('resize', () => { measureScene(); schedulePaint(); });
-window.addEventListener('pointermove', (event) => { if (event.pointerType !== 'mouse') { hasPointer = false; schedulePaint(); return; } cursorX = event.clientX; cursorY = event.clientY; hasPointer = true; if (motionOn) schedulePaint(); }, { passive: true });
-document.addEventListener('pointerout', (event) => { if (event.pointerType === 'mouse' && !event.relatedTarget) { hasPointer = false; schedulePaint(); } }, { passive: true });
-window.addEventListener('blur', () => { hasPointer = false; schedulePaint(); });
-function setMotion(value) { motionOn = value; document.body.classList.toggle('motion-off', !value); $('#motionToggle').textContent = `MOTION ${value ? 'ON' : 'OFF'}`; $('#motionToggle').setAttribute('aria-pressed', String(value)); schedulePaint(); }
+window.addEventListener('pointermove', (event) => {
+  if (event.pointerType !== 'mouse' || !motionOn) { catActive = false; cat.classList.remove('is-visible'); return; }
+  catTargetX = clamp(event.clientX - CAT.width * .42, 4, window.innerWidth - CAT.width - 4);
+  catTargetY = clamp(event.clientY + 12, 4, window.innerHeight - CAT.height - 4);
+  if (!catActive) { catX = clamp(catTargetX - 58, 4, window.innerWidth - CAT.width - 4); catY = catTargetY; catActive = true; lastPointerMove = performance.now(); }
+  const dx = event.clientX - lastPointerX, dy = event.clientY - lastPointerY;
+  if (Math.hypot(dx, dy) > 2) lastPointerMove = performance.now();
+  if (Math.abs(dx) > 2) cat.style.setProperty('--cat-direction', dx < 0 ? -1 : 1);
+  lastPointerX = event.clientX; lastPointerY = event.clientY;
+  cat.classList.add('is-visible');
+  schedulePaint();
+}, { passive: true });
+document.addEventListener('pointerout', (event) => { if (event.pointerType === 'mouse' && !event.relatedTarget) { catActive = false; cat.classList.remove('is-visible'); } }, { passive: true });
+window.addEventListener('blur', () => { catActive = false; cat.classList.remove('is-visible'); });
+function setMotion(value) { motionOn = value; document.body.classList.toggle('motion-off', !value); $('#motionToggle').textContent = `MOTION ${value ? 'ON' : 'OFF'}`; $('#motionToggle').setAttribute('aria-pressed', String(value)); if (!value) { catActive = false; cat.classList.remove('is-visible'); } schedulePaint(); }
 $('#motionToggle').addEventListener('click', () => setMotion(!motionOn));
 reducedMotion.addEventListener('change', (event) => setMotion(!event.matches));
 renderWorks();

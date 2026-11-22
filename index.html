@@ -6,7 +6,7 @@
   <title>About Chinmayee — Software Engineer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="preload" href="./assets/chinmayee-front.png" as="image"><link rel="preload" href="./assets/chinmayee-front-gaze.png" as="image"><link rel="stylesheet" href="./styles.css">
+  <link rel="preload" href="./assets/chinmayee-front.png" as="image"><link rel="preload" href="./assets/cursor-cat-sit.png" as="image"><link rel="stylesheet" href="./styles.css">
   <script type="module" src="./script.js"></script>
 </head>
 <body>
@@ -14,13 +14,14 @@
 <div class="scene-stage" id="sceneStage" aria-hidden="true">
   <div class="scene-light"></div>
   <div class="character-camera" id="characterCamera">
-    <div class="character-frame front"><img src="./assets/chinmayee-front.png" alt=""><svg class="eye-rig" data-eye-view="front" viewBox="0 0 1024 1536" aria-hidden="true" focusable="false"></svg></div>
-    <div class="character-frame side"><img src="./assets/chinmayee-side.png" alt=""><svg class="eye-rig" data-eye-view="side" viewBox="0 0 1024 1536" aria-hidden="true" focusable="false"></svg></div>
+    <div class="character-frame front"><img src="./assets/chinmayee-front.png" alt=""></div>
+    <div class="character-frame side"><img src="./assets/chinmayee-side.png" alt=""></div>
     <img class="character-frame back" src="./assets/chinmayee-back.png" alt="">
   </div>
   <div class="scene-shade"></div>
 </div>
 <div class="resume-rail" id="resumeRail" aria-hidden="true"></div><div class="film-grain" aria-hidden="true"></div>
+<div class="cursor-cat" id="cursorCat" aria-hidden="true"><div class="cursor-cat-body"><img class="cat-sit" src="./assets/cursor-cat-sit.png" alt=""><img class="cat-run" src="./assets/cursor-cat-run.png" alt=""></div></div>
 <div class="hero-chrome" id="heroChrome" aria-hidden="true"><div class="frame-outline"></div><span class="cross cross-tl">+</span><span class="cross cross-tr">+</span><span class="cross cross-bl">+</span><span class="cross cross-br">+</span><div class="chrome-meta chrome-tl"><strong>Chinmayee Harane</strong><span>SOFTWARE ENGINEER</span></div><div class="chrome-meta chrome-tr">PORTFOLIO — 2026</div><div class="chrome-meta chrome-bl">CODE · DESIGN · CURIOSITY</div><div class="chrome-meta chrome-right">BASED IN PUNE, INDIA</div></div>
 <header class="site-controls"><a class="github-control" href="https://github.com/CHINMAYEEHARANE58" target="_blank" rel="noopener noreferrer" aria-label="Chinmayee on GitHub" title="GitHub">GH</a><a class="resume-control" href="./resume/Chinmayee_Harane_Resume.pdf" target="_blank" rel="noopener noreferrer">RÉSUMÉ</a><button class="motion-control" id="motionToggle" type="button" aria-pressed="true">MOTION ON</button></header>
 <main>

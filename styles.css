@@ -45,9 +45,21 @@ main{position:relative;z-index:10}.hero{height:100svh;min-height:650px;display:f
 @media(max-width:600px){.contributions-section{padding:0 25px 90px}.contributions-heading h2{font-size:64px}.contributions-card{padding:21px}.contributions-card-top,.contributions-foot{align-items:flex-start;flex-direction:column;gap:10px}.contributions-grid{grid-template-rows:repeat(7,10px);grid-auto-columns:10px;gap:3px}.contribution-day{width:10px;height:10px}.dialog-cover .project-cover{padding:22px}.dialog-cover .project-cover strong{font-size:36px}}
 @media(prefers-reduced-motion:reduce){.hobby-card:first-child .hobby-icon,.hobby-card:first-child:after{animation:none}.hobby-card:first-child:after{display:none}}
 
-/* The iris texture stays behind a conservative mask inside each eyelid. */
-.character-frame.front>img,.character-frame.side>img,.eye-rig{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
-.eye-rig{pointer-events:none;overflow:hidden}
+/* The approved portraits keep their original, still eyes. */
+.character-frame.front>img,.character-frame.side>img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+
+.cursor-cat{position:fixed;inset:0 auto auto 0;width:100px;height:92px;z-index:90;pointer-events:none;opacity:0;transition:opacity .18s ease;will-change:transform;--cat-direction:1}
+.cursor-cat.is-visible{opacity:1}
+.cursor-cat-body{position:relative;width:100%;height:100%;transform-origin:50% 82%;filter:drop-shadow(0 5px 5px rgba(10,18,15,.24));animation:cat-breathe 2.6s ease-in-out infinite}
+.cursor-cat img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;transition:opacity .12s ease}
+.cursor-cat .cat-run{opacity:0}
+.cursor-cat.is-running .cat-sit{opacity:0}
+.cursor-cat.is-running .cat-run{opacity:1}
+.cursor-cat.is-running .cursor-cat-body{animation:cat-hop .28s ease-in-out infinite}
+@keyframes cat-breathe{0%,100%{transform:scaleX(var(--cat-direction)) scale(1)}50%{transform:scaleX(var(--cat-direction)) scale(1.025)}}
+@keyframes cat-hop{0%,100%{transform:translateY(0) scaleX(var(--cat-direction))}50%{transform:translateY(-5px) scaleX(var(--cat-direction))}}
+.motion-off .cursor-cat{display:none}
+@media(prefers-reduced-motion:reduce){.cursor-cat{display:none}}
 
 /* Small motifs for each activity in Outside the code. */
 .hobby-card:nth-child(n+2):after{position:absolute;top:86px;left:90px;font-family:Georgia,serif;font-size:24px;line-height:1;color:#4d6958;pointer-events:none}
