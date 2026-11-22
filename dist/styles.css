@@ -78,12 +78,3 @@ main{position:relative;z-index:10}.hero{height:100svh;min-height:650px;display:f
 .motion-off .hobby-card .hobby-icon,.motion-off .hobby-card:after{animation:none!important}
 .motion-off .hobby-card:after{opacity:0}
 @media(prefers-reduced-motion:reduce){.hobby-card .hobby-icon,.hobby-card:after{animation:none!important}.hobby-card:after{display:none}}
-
-/* The hourly activities only replace the landing pose. */
-.hero-pose-layer{opacity:0;pointer-events:none}
-.hero-pose{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .85s ease;will-change:opacity}
-.hero-pose.is-active{opacity:1}
-.pose-control{margin-top:17px;padding:8px 14px;border:1px solid rgba(255,255,255,.45);border-radius:100px;background:rgba(13,22,19,.35);color:#fff;font-size:10px;font-weight:700;letter-spacing:.16em;cursor:pointer;backdrop-filter:blur(8px)}
-.pose-control:hover,.pose-control:focus-visible{border-color:var(--lime);color:var(--lime)}
-@media(prefers-reduced-motion:reduce){.hero-pose{transition:none}}
-.motion-off .hero-pose{transition:none}
