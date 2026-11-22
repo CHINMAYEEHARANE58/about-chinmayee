@@ -100,6 +100,7 @@ dialog.addEventListener('close', () => document.body.classList.remove('dialog-op
 
 const stage = $('#sceneStage');
 const camera = $('#characterCamera');
+const eyeTextures = [...document.querySelectorAll('.eye-texture')];
 const rail = $('#resumeRail');
 const chrome = $('#heroChrome');
 const track = $('#worksTrack');
@@ -111,7 +112,26 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let motionOn = !reducedMotion.matches;
 let pointerX = 0;
 let pointerY = 0;
+let cursorX = 0;
+let cursorY = 0;
+let hasPointer = false;
+let gazeX = 0;
+let gazeY = 0;
+let lastGazeTime = 0;
 let scheduled = false;
+
+function paintGaze(faceX, faceY, vw, vh) {
+  const targetX = motionOn && hasPointer ? clamp((cursorX - faceX) / (vw * .42), -1, 1) * 4.2 : 0;
+  const targetY = motionOn && hasPointer ? clamp((cursorY - faceY) / (vh * .45), -1, 1) * 2.1 : 0;
+  const now = performance.now();
+  const alpha = motionOn ? 1 - Math.exp(-Math.min(now - lastGazeTime || 16, 64) / 90) : 1;
+  lastGazeTime = now;
+  gazeX = mix(gazeX, targetX, alpha);
+  gazeY = mix(gazeY, targetY, alpha);
+  const offset = `translate(${gazeX.toFixed(2)} ${gazeY.toFixed(2)})`;
+  for (const eye of eyeTextures) eye.setAttribute('transform', offset);
+  if (Math.abs(gazeX - targetX) + Math.abs(gazeY - targetY) > .025) schedulePaint();
+}
 
 function keyframes(viewportHeight) {
   const top = (element) => element.getBoundingClientRect().top + window.scrollY;
@@ -156,6 +176,7 @@ function paint() {
   const tx = vw * (vw < 600 ? (scroll < workTop ? .5 : .22) : frame.tx) - frame.ax * baseWidth * zoom + (motionOn ? pointerX * 12 : 0);
   const ty = vh * frame.ty - frame.ay * baseHeight * zoom + (motionOn ? pointerY * 8 : 0);
   camera.style.transform = `translate3d(${tx}px,${ty}px,0) scale(${zoom})`;
+  paintGaze(tx + baseWidth * zoom * (546 / 1024), ty + baseHeight * zoom * (222 / 1536), vw, vh);
 
   const heroFade = clamp(scroll / (vh * .45));
   heroCopy.style.opacity = String(1 - heroFade);
@@ -181,7 +202,8 @@ function paint() {
 function schedulePaint() { if (!scheduled) { scheduled = true; requestAnimationFrame(paint); } }
 window.addEventListener('scroll', schedulePaint, { passive: true });
 window.addEventListener('resize', schedulePaint);
-window.addEventListener('pointermove', (event) => { pointerX = event.clientX / window.innerWidth - .5; pointerY = event.clientY / window.innerHeight - .5; if (motionOn) schedulePaint(); }, { passive: true });
+window.addEventListener('pointermove', (event) => { cursorX = event.clientX; cursorY = event.clientY; hasPointer = true; pointerX = event.clientX / window.innerWidth - .5; pointerY = event.clientY / window.innerHeight - .5; if (motionOn) schedulePaint(); }, { passive: true });
+document.addEventListener('mouseleave', () => { hasPointer = false; schedulePaint(); });
 function setMotion(value) { motionOn = value; document.body.classList.toggle('motion-off', !value); $('#motionToggle').textContent = `MOTION ${value ? 'ON' : 'OFF'}`; $('#motionToggle').setAttribute('aria-pressed', String(value)); schedulePaint(); }
 $('#motionToggle').addEventListener('click', () => setMotion(!motionOn));
 reducedMotion.addEventListener('change', (event) => setMotion(!event.matches));
