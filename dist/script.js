@@ -100,7 +100,30 @@ dialog.addEventListener('close', () => document.body.classList.remove('dialog-op
 
 const stage = $('#sceneStage');
 const camera = $('#characterCamera');
-const eyeTextures = [...document.querySelectorAll('.eye-texture')];
+const eyeLayers = {
+  front: {
+    original: './assets/chinmayee-front.png', blank: './assets/chinmayee-front-gaze.png',
+    eyes: [
+      { name: 'left', x: 505, y: 219, rx: 12, ry: 11, window: 'M486 217 C497 211 514 211 528 221 C517 228 498 229 486 217 Z' },
+      { name: 'right', x: 585, y: 226, rx: 11, ry: 10, window: 'M570 225 C580 218 596 218 607 228 C597 235 579 235 570 225 Z' },
+    ],
+  },
+  side: {
+    original: './assets/chinmayee-side.png', blank: './assets/chinmayee-side-gaze.png',
+    eyes: [
+      { name: 'left', x: 536, y: 216, rx: 12, ry: 11, window: 'M516 216 C525 209 545 208 559 219 C547 227 527 227 516 216 Z' },
+      { name: 'right', x: 611, y: 216, rx: 11, ry: 10, window: 'M592 216 C600 209 617 208 629 217 C618 224 601 224 592 216 Z' },
+    ],
+  },
+};
+for (const [view, layer] of Object.entries(eyeLayers)) {
+  const rig = camera.querySelector(`[data-eye-view="${view}"]`);
+  const defs = layer.eyes.map((eye) => `<clipPath id="${view}-${eye.name}-eye"><path d="${eye.window}"/></clipPath><clipPath id="${view}-${eye.name}-iris"><ellipse cx="${eye.x}" cy="${eye.y}" rx="${eye.rx}" ry="${eye.ry}"/></clipPath>`).join('');
+  const eyes = layer.eyes.map((eye) => `<g clip-path="url(#${view}-${eye.name}-eye)"><image href="${layer.blank}" width="1024" height="1536" clip-path="url(#${view}-${eye.name}-iris)"/><g class="iris-mover"><image href="${layer.original}" width="1024" height="1536" clip-path="url(#${view}-${eye.name}-iris)"/></g></g>`).join('');
+  rig.innerHTML = `<defs>${defs}</defs>${eyes}`;
+}
+const eyeMovers = [...camera.querySelectorAll('.iris-mover')];
+const eyeRigs = [...camera.querySelectorAll('.eye-rig')];
 const rail = $('#resumeRail');
 const chrome = $('#heroChrome');
 const track = $('#worksTrack');
@@ -121,15 +144,16 @@ let lastGazeTime = 0;
 let scheduled = false;
 
 function paintGaze(faceX, faceY, vw, vh) {
-  const targetX = motionOn && hasPointer ? clamp((cursorX - faceX) / (vw * .42), -1, 1) * 4.2 : 0;
-  const targetY = motionOn && hasPointer ? clamp((cursorY - faceY) / (vh * .45), -1, 1) * 2.1 : 0;
+  const targetX = motionOn && hasPointer ? clamp((cursorX - faceX) / (vw * .42), -1, 1) * 3 : 0;
+  const targetY = motionOn && hasPointer ? clamp((cursorY - faceY) / (vh * .45), -1, 1) * 1.4 : 0;
   const now = performance.now();
   const alpha = motionOn ? 1 - Math.exp(-Math.min(now - lastGazeTime || 16, 64) / 90) : 1;
   lastGazeTime = now;
   gazeX = mix(gazeX, targetX, alpha);
   gazeY = mix(gazeY, targetY, alpha);
   const offset = `translate(${gazeX.toFixed(2)} ${gazeY.toFixed(2)})`;
-  for (const eye of eyeTextures) eye.setAttribute('transform', offset);
+  for (const eye of eyeMovers) eye.setAttribute('transform', offset);
+  for (const rig of eyeRigs) rig.style.opacity = String(clamp((Math.abs(gazeX) + Math.abs(gazeY)) / .5));
   if (Math.abs(gazeX - targetX) + Math.abs(gazeY - targetY) > .025) schedulePaint();
 }
 
