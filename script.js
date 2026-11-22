@@ -123,7 +123,49 @@ for (const [view, layer] of Object.entries(eyeLayers)) {
   rig.innerHTML = `<defs>${defs}</defs>${eyes}`;
 }
 const eyeMovers = [...camera.querySelectorAll('.iris-mover')];
-const eyeRigs = [...camera.querySelectorAll('.eye-rig')];
+const poseLayer = $('#heroPoseLayer');
+const poseFrames = [...poseLayer.querySelectorAll('.hero-pose')];
+const poseButton = $('#poseToggle');
+const poseNames = ['Standing', 'Building', 'Snack break', 'Stretching', 'Making art'];
+const poseHour = 60 * 60 * 1000;
+let poseEpoch = Date.now();
+try {
+  const saved = Number(sessionStorage.getItem('chinmayee-pose-epoch'));
+  if (saved > 0 && saved <= Date.now()) poseEpoch = saved;
+  else sessionStorage.setItem('chinmayee-pose-epoch', String(poseEpoch));
+} catch { /* The hourly cycle still works without session storage. */ }
+const timedPose = () => Math.floor((Date.now() - poseEpoch) / poseHour) % poseNames.length;
+let scheduledPose = timedPose();
+let poseIndex = scheduledPose;
+let manualPose = null;
+let poseBlend = 0;
+let poseTimer;
+
+function showPose(index) {
+  poseIndex = index;
+  for (const frame of poseFrames) {
+    const selected = Number(frame.dataset.pose) === index;
+    const next = Number(frame.dataset.pose) === (index + 1) % poseNames.length;
+    if ((selected || next) && !frame.src) frame.src = frame.dataset.src;
+    frame.classList.toggle('is-active', selected);
+  }
+  $('#poseLabel').textContent = poseNames[index].toUpperCase();
+  poseButton.setAttribute('aria-label', `Current character pose: ${poseNames[index]}. Preview next pose; changes automatically every hour.`);
+  schedulePaint();
+}
+
+function refreshTimedPose() {
+  const next = timedPose();
+  if (next !== scheduledPose) {
+    scheduledPose = next;
+    manualPose = null;
+    if (motionOn) showPose(next);
+  }
+  clearTimeout(poseTimer);
+  poseTimer = setTimeout(refreshTimedPose, Math.max(1000, poseHour - ((Date.now() - poseEpoch) % poseHour) + 50));
+}
+poseButton.addEventListener('click', () => { manualPose = (poseIndex + 1) % poseNames.length; showPose(manualPose); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshTimedPose(); });
 const rail = $('#resumeRail');
 const chrome = $('#heroChrome');
 const track = $('#worksTrack');
@@ -141,19 +183,21 @@ let hasPointer = false;
 let gazeX = 0;
 let gazeY = 0;
 let lastGazeTime = 0;
+let cameraScroll = window.scrollY;
+let lastCameraTime = 0;
+let lastPoseTime = 0;
 let scheduled = false;
 
 function paintGaze(faceX, faceY, vw, vh) {
-  const targetX = motionOn && hasPointer ? clamp((cursorX - faceX) / (vw * .42), -1, 1) * 3 : 0;
-  const targetY = motionOn && hasPointer ? clamp((cursorY - faceY) / (vh * .45), -1, 1) * 1.4 : 0;
+  const targetX = motionOn && hasPointer ? Math.tanh((cursorX - faceX) / (vw * .31)) * 4 : 0;
+  const targetY = motionOn && hasPointer ? Math.tanh((cursorY - faceY) / (vh * .36)) * 1.8 : 0;
   const now = performance.now();
-  const alpha = motionOn ? 1 - Math.exp(-Math.min(now - lastGazeTime || 16, 64) / 90) : 1;
+  const alpha = motionOn ? 1 - Math.exp(-Math.min(now - lastGazeTime || 16, 64) / 75) : 1;
   lastGazeTime = now;
   gazeX = mix(gazeX, targetX, alpha);
   gazeY = mix(gazeY, targetY, alpha);
   const offset = `translate(${gazeX.toFixed(2)} ${gazeY.toFixed(2)})`;
   for (const eye of eyeMovers) eye.setAttribute('transform', offset);
-  for (const rig of eyeRigs) rig.style.opacity = String(clamp((Math.abs(gazeX) + Math.abs(gazeY)) / .5));
   if (Math.abs(gazeX - targetX) + Math.abs(gazeY - targetY) > .025) schedulePaint();
 }
 
@@ -177,8 +221,7 @@ function interpolateCamera(scroll, frames) {
     const a = frames[i], b = frames[i + 1];
     if (scroll <= b.at) {
       const t = clamp((scroll - a.at) / Math.max(1, b.at - a.at));
-      const smooth = t * t * (3 - 2 * t);
-      return Object.fromEntries(['zoom', 'ax', 'ay', 'tx', 'ty'].map((key) => [key, mix(a[key], b[key], smooth)]));
+      return Object.fromEntries(['zoom', 'ax', 'ay', 'tx', 'ty'].map((key) => [key, mix(a[key], b[key], t)]));
     }
   }
   return frames.at(-1);
@@ -187,11 +230,22 @@ function interpolateCamera(scroll, frames) {
 function paint() {
   scheduled = false;
   const vh = window.innerHeight, vw = window.innerWidth, scroll = window.scrollY;
+  const now = performance.now();
+  const cameraAlpha = motionOn ? 1 - Math.exp(-Math.min(now - lastCameraTime || 16, 64) / 105) : 1;
+  lastCameraTime = now;
+  cameraScroll = mix(cameraScroll, scroll, cameraAlpha);
+  if (Math.abs(cameraScroll - scroll) > .4) schedulePaint();
   const workTop = works.getBoundingClientRect().top + scroll;
   const workHeight = (groups.length + 1) * vh;
   works.style.height = `${workHeight}px`;
   const workProgress = clamp((scroll - workTop - vh) / Math.max(1, (groups.length - 1) * vh));
-  const frame = interpolateCamera(scroll, keyframes(vh));
+  const frame = interpolateCamera(cameraScroll, keyframes(vh));
+  const poseTarget = poseIndex === 0 ? 0 : 1 - clamp(cameraScroll / (vh * .65));
+  const poseAlpha = motionOn ? 1 - Math.exp(-Math.min(now - lastPoseTime || 16, 64) / 280) : 1;
+  lastPoseTime = now;
+  poseBlend = mix(poseBlend, poseTarget, poseAlpha);
+  if (Math.abs(poseBlend - poseTarget) > .005) schedulePaint();
+  poseLayer.style.opacity = String(poseBlend);
   const baseHeight = vh * (vw < 600 ? 1.4 : 1.82);
   const baseWidth = baseHeight * 2 / 3;
   camera.style.width = `${baseWidth}px`;
@@ -216,7 +270,7 @@ function paint() {
     back = clamp((workProgress - .14) * 7) * (1 - clamp((workProgress - .56) * 5));
     front = Math.max(0, 1 - side - back);
   }
-  $('.character-frame.front').style.opacity = String(front);
+  $('.character-frame.front').style.opacity = String(front * (1 - poseBlend));
   $('.character-frame.side').style.opacity = String(side);
   $('.character-frame.back').style.opacity = String(back);
   const pastWork = clamp((scroll - (workTop + workHeight - vh)) / (vh * .7));
@@ -227,10 +281,12 @@ function schedulePaint() { if (!scheduled) { scheduled = true; requestAnimationF
 window.addEventListener('scroll', schedulePaint, { passive: true });
 window.addEventListener('resize', schedulePaint);
 window.addEventListener('pointermove', (event) => { cursorX = event.clientX; cursorY = event.clientY; hasPointer = true; pointerX = event.clientX / window.innerWidth - .5; pointerY = event.clientY / window.innerHeight - .5; if (motionOn) schedulePaint(); }, { passive: true });
-document.addEventListener('mouseleave', () => { hasPointer = false; schedulePaint(); });
-function setMotion(value) { motionOn = value; document.body.classList.toggle('motion-off', !value); $('#motionToggle').textContent = `MOTION ${value ? 'ON' : 'OFF'}`; $('#motionToggle').setAttribute('aria-pressed', String(value)); schedulePaint(); }
+window.addEventListener('blur', () => { hasPointer = false; schedulePaint(); });
+function setMotion(value) { motionOn = value; document.body.classList.toggle('motion-off', !value); $('#motionToggle').textContent = `MOTION ${value ? 'ON' : 'OFF'}`; $('#motionToggle').setAttribute('aria-pressed', String(value)); if (value) showPose(manualPose ?? timedPose()); schedulePaint(); }
 $('#motionToggle').addEventListener('click', () => setMotion(!motionOn));
 reducedMotion.addEventListener('change', (event) => setMotion(!event.matches));
 renderWorks();
 renderContributions();
+showPose(poseIndex);
+refreshTimedPose();
 setMotion(motionOn);
