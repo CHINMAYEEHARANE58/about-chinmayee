@@ -5,13 +5,17 @@ A visual portfolio inspired by the scroll-led composition of [About Sen](https:/
 ## Run locally
 
 ```sh
-python3 -m http.server 5173
+npm install
+npm run build
+npm run preview -- --port 5173
 ```
 
 Open `http://localhost:5173`.
 
+For editing with hot reload, use `npm run dev -- --port 5173`. Vite writes the deployable static site to `dist/`.
+
 ## Content and motion
 
-`index.html` contains Chinmayee's biography, education, experience, skills, hobbies, and contact links. The hobbies section covers dancing, art and craft, content creation, open source contribution, public speaking, trekking, and traveling. The 12 case studies in `data/projects.js` and 10 additional GitHub projects in `data/more-projects.js` were adapted from her `Portfolio` repository, which also supplied selected project screenshots. The résumé download is in `resume/`.
+`src/App.jsx` renders Chinmayee's biography, education, experience, skills, hobbies, projects, and contact links as React components. The hobbies section covers dancing, art and craft, content creation, open source contribution, public speaking, trekking, and traveling. The 12 case studies in `data/projects.js` and 10 additional GitHub projects in `data/more-projects.js` were adapted from her `Portfolio` repository, which also supplied selected project screenshots. The résumé download and character art live in `public/`.
 
-`script.js` drives the scroll camera, the horizontal works gallery, and project detail dialogs. The character consists of matching front, side, and rear raster views. It approximates the reference's camera movement; it is not a rigged 3D model and cannot reproduce its live eye tracking or exact geometry.
+`src/motion.js` drives the scroll camera, the horizontal works gallery, and the cursor cat through one animation loop. React owns the project previews, detail dialogs, and motion toggle. The character consists of matching front, side, and rear raster views. It approximates the reference's camera movement; it is not a rigged 3D model and cannot reproduce its exact geometry.
