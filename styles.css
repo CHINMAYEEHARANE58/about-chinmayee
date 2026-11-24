@@ -148,31 +148,34 @@ main{position:relative;z-index:10}.hero{height:100svh;min-height:650px;display:f
   .contact-foot{left:18px;right:18px}
 }
 
-/* The black-and-white option keeps contrast and the original character artwork. */
-body[data-theme="mono"]{--cream:#fff;--line:rgba(255,255,255,.25);--muted:rgba(255,255,255,.76);--lime:#fff;background:#090909;color:#fff}
-body[data-theme="mono"] .scene-stage{filter:grayscale(1) contrast(1.07)}
-body[data-theme="mono"] .resume-rail{background:linear-gradient(to right,transparent,rgba(0,0,0,.4) 15%,rgba(0,0,0,.8) 80%)}
-body[data-theme="mono"] .works-section,body[data-theme="mono"] .works-panel,body[data-theme="mono"] .skills-section,body[data-theme="mono"] .contributions-section,body[data-theme="mono"] .contact-section{background:#090909}
-body[data-theme="mono"] .time-label,body[data-theme="mono"] .resume-entry .role,body[data-theme="mono"] .panel-number,body[data-theme="mono"] .skills-section h2 em,body[data-theme="mono"] .contact-section h2 em,body[data-theme="mono"] .contributions-heading h2 em,body[data-theme="mono"] .contributions-heading p strong,body[data-theme="mono"] .contributions-heading p a{color:#fff}
-body[data-theme="mono"] .resume-entry:before{background:#fff;box-shadow:0 0 14px rgba(255,255,255,.5)}
-body[data-theme="mono"] .hobbies-section{background:#ebebeb;color:#111}
-body[data-theme="mono"] .hobbies-section:before{border-color:rgba(0,0,0,.2)}
-body[data-theme="mono"] .hobbies-heading h2 em,body[data-theme="mono"] .hobbies-heading .section-overline,body[data-theme="mono"] .hobbies-heading p,body[data-theme="mono"] .hobby-card p,body[data-theme="mono"] .hobby-number{color:#222}
-body[data-theme="mono"] .hobby-card,body[data-theme="mono"] .hobby-card:nth-child(n){background:#fff;border-color:#b8b8b8;box-shadow:0 12px 24px rgba(0,0,0,.07)}
-body[data-theme="mono"] .hobby-card:nth-child(even){background:#d9d9d9}
-body[data-theme="mono"] .hobby-icon{background:#f4f4f4;border-color:#aaa}
-body[data-theme="mono"] .hobby-card:after{color:#333}
-body[data-theme="mono"] .contributions-card{background:#161616;border-color:#555}
-body[data-theme="mono"] .contributions-card-top,body[data-theme="mono"] .contributions-foot{color:#ddd}
-body[data-theme="mono"] .level-0{background:#333!important}body[data-theme="mono"] .level-1{background:#606060!important}body[data-theme="mono"] .level-2{background:#929292!important}body[data-theme="mono"] .level-3{background:#c4c4c4!important}body[data-theme="mono"] .level-4{background:#fff!important}
-body[data-theme="mono"] .project-cover{background:linear-gradient(135deg,#555,#111);color:#fff}
-body[data-theme="mono"] .project-cover span,body[data-theme="mono"] .project-cover small{color:#e1e1e1!important}
-body[data-theme="mono"] .panel-preview img,body[data-theme="mono"] .dialog-cover img{filter:grayscale(1)}
-body[data-theme="mono"] .project-dialog{background:#101010}
-body[data-theme="mono"] .dialog-close{background:#262626}
-body[data-theme="mono"] .site-controls a,body[data-theme="mono"] .site-controls button{background:#101010;border-color:#aaa;color:#fff}
-body[data-theme="mono"] .site-controls .theme-control{background:#fff;color:#111}
-body[data-theme="mono"] .resume-timeline{border-color:rgba(255,255,255,.55)}
-@media(max-width:600px){body[data-theme="mono"] .resume-timeline{background:linear-gradient(to bottom,rgba(0,0,0,.2),rgba(0,0,0,.8) 40%,rgba(0,0,0,.9))}}
+/* The light palette keeps the character and project images in colour. */
+body[data-theme="light"]{--cream:#17221d;--line:rgba(23,34,29,.22);--muted:rgba(23,34,29,.74);--lime:#28563a;background:#f5f6ef;color:#17221d}
+body[data-theme="light"] .hero{color:#fff}
+body[data-theme="light"] .frame-outline{border-color:rgba(17,30,23,.3)}
+body[data-theme="light"] .cross,body[data-theme="light"] .chrome-meta{color:#18251e}
+body[data-theme="light"] .resume-title,body[data-theme="light"] .resume-section{color:#15251d}
+body[data-theme="light"] .resume-timeline{border-color:rgba(23,34,29,.4);background:rgba(249,250,245,.88);padding-right:22px;border-radius:0 14px 14px 0}
+body[data-theme="light"] .resume-entry p{color:#344239}
+body[data-theme="light"] .resume-entry .role,body[data-theme="light"] .time-label{color:#1f4730}
+body[data-theme="light"] .resume-entry:before{background:#28563a;box-shadow:0 0 14px rgba(40,86,58,.3)}
+body[data-theme="light"] .resume-rail{background:linear-gradient(to right,transparent,rgba(245,246,239,.22) 15%,rgba(245,246,239,.76) 80%)}
+body[data-theme="light"] .works-section,body[data-theme="light"] .works-panel,body[data-theme="light"] .skills-section,body[data-theme="light"] .contributions-section,body[data-theme="light"] .contact-section{background:#f5f6ef}
+body[data-theme="light"] .works-title{color:#17221d;text-shadow:0 1px 12px rgba(245,246,239,.65)}
+body[data-theme="light"] .works-panel{border-color:var(--line)}
+body[data-theme="light"] .panel-number,body[data-theme="light"] .skills-section h2 em,body[data-theme="light"] .contact-section h2 em,body[data-theme="light"] .contributions-heading h2 em,body[data-theme="light"] .contributions-heading p strong,body[data-theme="light"] .contributions-heading p a{color:#28563a}
+body[data-theme="light"] .works-progress{color:#344239}
+body[data-theme="light"] .works-progress-line{background:rgba(23,34,29,.4)}
+body[data-theme="light"] .hobbies-section{background:#dfe8d5}
+body[data-theme="light"] .contributions-card{background:radial-gradient(circle at 3% 0%,rgba(173,206,162,.35),transparent 32%),#fff;border-color:rgba(23,34,29,.2);box-shadow:0 20px 40px rgba(30,55,35,.09)}
+body[data-theme="light"] .contributions-card-top,body[data-theme="light"] .contributions-foot{color:#45594b}
+body[data-theme="light"] .level-0{background:#e4e9df!important}
+body[data-theme="light"] .project-dialog{background:#f9faf6;border-color:#b5c3b3;color:#17221d}
+body[data-theme="light"] .dialog-close{background:#fff;color:#17221d}
+body[data-theme="light"] .dialog-eyebrow{color:#28563a}
+body[data-theme="light"] .site-controls a,body[data-theme="light"] .site-controls button{background:rgba(255,255,255,.92);border-color:rgba(23,34,29,.26);color:#17221d}
+body[data-theme="light"] .site-controls .theme-control{background:#17221d;color:#fff}
+body[data-theme="light"] .site-controls a:hover,body[data-theme="light"] .site-controls button:hover{background:#e4e9df}
+body[data-theme="light"] .site-controls .theme-control:hover{background:#294b36;color:#fff}
+@media(max-width:600px){body[data-theme="light"] .resume-timeline{background:linear-gradient(to bottom,rgba(249,250,245,.68),rgba(249,250,245,.96) 35%);backdrop-filter:none}}
 
 button:focus-visible,a:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
