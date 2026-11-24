@@ -113,6 +113,10 @@ function Contributions() {
 
 export default function App() {
   const [motionOn, setMotionOn] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const [monochrome, setMonochrome] = useState(() => {
+    try { return window.localStorage.getItem('portfolio-theme') === 'monochrome'; }
+    catch { return false; }
+  });
   const [selectedProject, setSelectedProject] = useState(null);
   const motionRef = useRef(null);
 
@@ -121,6 +125,12 @@ export default function App() {
     return () => { motionRef.current?.destroy(); motionRef.current = null; };
   }, []);
   useEffect(() => { motionRef.current?.setMotion(motionOn); }, [motionOn]);
+  useEffect(() => {
+    document.body.dataset.theme = monochrome ? 'mono' : 'color';
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', monochrome ? '#111111' : '#a3aa91');
+    try { window.localStorage.setItem('portfolio-theme', monochrome ? 'monochrome' : 'color'); }
+    catch { /* Browsers may disable local storage. The toggle still works for this visit. */ }
+  }, [monochrome]);
 
   return <>
     <a className="skip-link" href="#about">Skip to content</a>
@@ -145,6 +155,7 @@ export default function App() {
     <header className="site-controls">
       <a className="github-control" href="https://github.com/CHINMAYEEHARANE58" target="_blank" rel="noopener noreferrer" aria-label="Chinmayee on GitHub" title="GitHub">GH</a>
       <a className="resume-control" href="./resume/Chinmayee_Harane_Resume.pdf" target="_blank" rel="noopener noreferrer">RÉSUMÉ</a>
+      <button className="theme-control" type="button" aria-label={monochrome ? 'Switch to colour theme' : 'Switch to black and white theme'} aria-pressed={monochrome} onClick={() => setMonochrome((current) => !current)}>{monochrome ? 'COLOUR' : 'B&W'}</button>
       <button className="motion-control" id="motionToggle" type="button" aria-pressed={motionOn} onClick={() => setMotionOn((current) => !current)}>MOTION {motionOn ? 'ON' : 'OFF'}</button>
     </header>
     <main>

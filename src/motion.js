@@ -92,8 +92,9 @@ export function startPortfolioMotion({ panelCount, motionOn: initialMotionOn, se
   }
 
   function measureScene() {
-    workHeight = (panelCount + 1) * window.innerHeight;
-    works.style.height = `${workHeight}px`;
+    const stackedWorks = window.innerWidth <= 700;
+    works.style.height = stackedWorks ? 'auto' : `${(panelCount + 1) * window.innerHeight}px`;
+    workHeight = works.offsetHeight;
     workTop = works.getBoundingClientRect().top + window.scrollY;
     shots = keyframes(window.innerHeight);
   }
@@ -122,7 +123,10 @@ export function startPortfolioMotion({ panelCount, motionOn: initialMotionOn, se
     const cameraAlpha = motionOn ? 1 - Math.exp(-dt / duration) : 1;
     cameraScroll = mix(cameraScroll, scroll, cameraAlpha);
     if (Math.abs(cameraScroll - scroll) > .25) schedulePaint();
-    const workProgress = clamp((scroll - workTop - vh) / Math.max(1, (panelCount - 1) * vh));
+    const stackedWorks = vw <= 700;
+    const workProgress = stackedWorks
+      ? clamp((scroll - workTop) / Math.max(1, workHeight - vh))
+      : clamp((scroll - workTop - vh) / Math.max(1, (panelCount - 1) * vh));
     const frame = motionOn ? interpolateCamera(cameraScroll) : shots[0];
     const baseHeight = vh * (vw < 600 ? 1.4 : 1.82);
     const baseWidth = baseHeight * 2 / 3;
@@ -142,7 +146,7 @@ export function startPortfolioMotion({ panelCount, motionOn: initialMotionOn, se
     heroCopy.style.filter = `blur(${heroFade * 12}px)`;
     chrome.style.opacity = String(1 - clamp(scroll / 270));
     rail.style.opacity = String(clamp((cameraScroll - vh * .55) / (vh * .45)) * (1 - clamp((cameraScroll - workTop) / (vh * .5))));
-    track.style.transform = `translate3d(${-workProgress * (panelCount - 1) * (vw * (vw < 600 ? 1 : vw < 900 ? .74 : .66))}px,0,0)`;
+    track.style.transform = stackedWorks ? '' : `translate3d(${-workProgress * (panelCount - 1) * (vw * (vw < 900 ? .74 : .66))}px,0,0)`;
     progressLine.style.width = `${Math.max(1, workProgress * 100)}%`;
     const inWork = scroll >= workTop;
     let front = 1 - frame.side, side = frame.side, back = 0;

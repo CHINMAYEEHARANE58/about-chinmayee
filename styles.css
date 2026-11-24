@@ -101,3 +101,78 @@ main{position:relative;z-index:10}.hero{height:100svh;min-height:650px;display:f
 .hero h1{font-family:'Mansalva',cursive;font-weight:400;font-size:clamp(52px,6vw,86px)}
 .hero p{font-family:'Cormorant Upright',Georgia,serif;font-weight:500;font-size:clamp(17px,1.5vw,21px);line-height:1.3;max-width:690px}
 @media(max-width:600px){.hero p{font-size:17px;line-height:1.32}}
+
+/* A readable stacked project layout replaces the horizontal scroll gallery on phones. */
+@media(max-width:700px){
+  :root{--panel-left:0px;--panel-width:100vw}
+  .works-section{height:auto!important;background:#0a0e16}
+  .works-sticky{position:relative;height:auto;min-height:0;overflow:visible}
+  .works-title{position:relative;top:auto;left:auto;padding:64px 24px 10px}
+  .works-track{position:relative;top:auto;left:auto;display:grid;height:auto;transform:none!important;will-change:auto}
+  .works-panel{width:100%;height:auto;min-height:0;overflow:visible;padding:36px 24px 48px;backdrop-filter:none;border-left:0;border-bottom:1px solid var(--line)}
+  .works-panel h3{font-size:clamp(36px,10vw,52px)}
+  .panel-preview{position:relative;display:grid;top:auto;right:auto;width:100%;height:clamp(170px,48vw,260px);margin:25px 0 12px}
+  .project-list{position:static;margin-top:8px}
+  .project-list button{min-height:58px;font-size:16px}
+  .project-list button span{min-width:0;overflow-wrap:anywhere}
+  .project-list button small{font-size:12px;white-space:normal;text-align:right;max-width:45%}
+  .works-progress{display:none}
+}
+@media(max-width:600px){
+  .site-controls{top:14px;right:14px;gap:5px;max-width:calc(100vw - 28px)}
+  .site-controls a,.site-controls button{height:36px;padding:0 9px;font-size:10px;white-space:nowrap}
+  .site-controls .resume-control{display:grid}
+  .site-controls .github-control{width:36px;flex:none}
+  .site-controls .motion-control{min-width:0}
+  .chrome-tl{top:68px;left:25px}
+  .chrome-bl{left:25px;bottom:22px}
+  .hero{height:max(100svh,620px);min-height:0;padding:0 24px 8vh}
+  .hero h1{font-size:clamp(44px,12vw,68px)}
+  .hero p{font-size:clamp(17px,4.3vw,20px)}
+  .scroll-cue{margin-top:17px}
+  .resume-section{padding:70px 24px 100px}
+  .resume-timeline{margin-top:min(42vh,320px);padding-left:20px}
+  .resume-entry{min-height:60svh;padding:42px 10px 42px 0}
+  .resume-entry p{font-size:16px}
+  .resume-entry:before{left:-26px}
+  .skills-section h2,.contact-section h2{font-size:clamp(48px,12vw,68px)}
+  .contact-section{min-height:0;padding-bottom:145px}
+  .email-link{overflow-wrap:anywhere}
+  .contact-foot{font-size:11px;line-height:1.4}
+}
+@media(max-width:380px){
+  .site-controls a,.site-controls button{padding:0 7px;font-size:9px}
+  .chrome-tl{top:63px}
+  .works-panel,.works-title{padding-left:18px;padding-right:18px}
+  .hobbies-section,.skills-section,.contributions-section,.contact-section{padding-left:18px;padding-right:18px}
+  .contact-foot{left:18px;right:18px}
+}
+
+/* The black-and-white option keeps contrast and the original character artwork. */
+body[data-theme="mono"]{--cream:#fff;--line:rgba(255,255,255,.25);--muted:rgba(255,255,255,.76);--lime:#fff;background:#090909;color:#fff}
+body[data-theme="mono"] .scene-stage{filter:grayscale(1) contrast(1.07)}
+body[data-theme="mono"] .resume-rail{background:linear-gradient(to right,transparent,rgba(0,0,0,.4) 15%,rgba(0,0,0,.8) 80%)}
+body[data-theme="mono"] .works-section,body[data-theme="mono"] .works-panel,body[data-theme="mono"] .skills-section,body[data-theme="mono"] .contributions-section,body[data-theme="mono"] .contact-section{background:#090909}
+body[data-theme="mono"] .time-label,body[data-theme="mono"] .resume-entry .role,body[data-theme="mono"] .panel-number,body[data-theme="mono"] .skills-section h2 em,body[data-theme="mono"] .contact-section h2 em,body[data-theme="mono"] .contributions-heading h2 em,body[data-theme="mono"] .contributions-heading p strong,body[data-theme="mono"] .contributions-heading p a{color:#fff}
+body[data-theme="mono"] .resume-entry:before{background:#fff;box-shadow:0 0 14px rgba(255,255,255,.5)}
+body[data-theme="mono"] .hobbies-section{background:#ebebeb;color:#111}
+body[data-theme="mono"] .hobbies-section:before{border-color:rgba(0,0,0,.2)}
+body[data-theme="mono"] .hobbies-heading h2 em,body[data-theme="mono"] .hobbies-heading .section-overline,body[data-theme="mono"] .hobbies-heading p,body[data-theme="mono"] .hobby-card p,body[data-theme="mono"] .hobby-number{color:#222}
+body[data-theme="mono"] .hobby-card,body[data-theme="mono"] .hobby-card:nth-child(n){background:#fff;border-color:#b8b8b8;box-shadow:0 12px 24px rgba(0,0,0,.07)}
+body[data-theme="mono"] .hobby-card:nth-child(even){background:#d9d9d9}
+body[data-theme="mono"] .hobby-icon{background:#f4f4f4;border-color:#aaa}
+body[data-theme="mono"] .hobby-card:after{color:#333}
+body[data-theme="mono"] .contributions-card{background:#161616;border-color:#555}
+body[data-theme="mono"] .contributions-card-top,body[data-theme="mono"] .contributions-foot{color:#ddd}
+body[data-theme="mono"] .level-0{background:#333!important}body[data-theme="mono"] .level-1{background:#606060!important}body[data-theme="mono"] .level-2{background:#929292!important}body[data-theme="mono"] .level-3{background:#c4c4c4!important}body[data-theme="mono"] .level-4{background:#fff!important}
+body[data-theme="mono"] .project-cover{background:linear-gradient(135deg,#555,#111);color:#fff}
+body[data-theme="mono"] .project-cover span,body[data-theme="mono"] .project-cover small{color:#e1e1e1!important}
+body[data-theme="mono"] .panel-preview img,body[data-theme="mono"] .dialog-cover img{filter:grayscale(1)}
+body[data-theme="mono"] .project-dialog{background:#101010}
+body[data-theme="mono"] .dialog-close{background:#262626}
+body[data-theme="mono"] .site-controls a,body[data-theme="mono"] .site-controls button{background:#101010;border-color:#aaa;color:#fff}
+body[data-theme="mono"] .site-controls .theme-control{background:#fff;color:#111}
+body[data-theme="mono"] .resume-timeline{border-color:rgba(255,255,255,.55)}
+@media(max-width:600px){body[data-theme="mono"] .resume-timeline{background:linear-gradient(to bottom,rgba(0,0,0,.2),rgba(0,0,0,.8) 40%,rgba(0,0,0,.9))}}
+
+button:focus-visible,a:focus-visible{outline:2px solid var(--lime);outline-offset:3px}
